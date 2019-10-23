@@ -4,8 +4,10 @@
  * Copyright (c) 2019 - Eugene Klimov
  */
 
+//go:generate protoc --go_out=. calendar.proto
+
 package main
 
-func main()  {
-	
+func main() {
+
 }
