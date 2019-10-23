@@ -4,10 +4,6 @@ package main;
 
 import "google/protobuf/timestamp.proto";
 
-message Events {
-    repeated Event events = 1;
-}
-
 message Event {
     uint32 id = 1;
     google.protobuf.Timestamp created_at = 2;

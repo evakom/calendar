@@ -16,23 +16,36 @@ import (
 
 func main() {
 
-	events := &Events{}
-	events.addEvent(newEvent())
+	events := newDBEvents()
+	event1 := newEvent()
 
-	out, err := proto.Marshal(events)
+	out, err := proto.Marshal(event1)
 	if err != nil {
 		log.Fatalln("Failed to encode event:", err)
 	}
 
-	events1 := &Events{}
-	if err := proto.Unmarshal(out, events1); err != nil {
+	event1 = &Event{}
+	if err := proto.Unmarshal(out, event1); err != nil {
 		log.Fatalln("Failed to parse event:", err)
 	}
 
-	event := newEvent()
-	event.Subject = "222222222222222222222"
-	event.Body = "3333333333333333333"
-	events1.addEvent(event)
+	event1.Location = "qqqqqqqqqqqqqqqqqqqqqq"
+	events.addEvent(event1)
 
-	fmt.Println(events1.GetEvents())
+	event2 := newEvent()
+	event2.Subject = "222222222222222222222"
+	event2.Body = "3333333333333333333"
+	events.addEvent(event2)
+
+	fmt.Println(events.events[1])
+	fmt.Println(events.events[2])
+
+	events.delEvent(event1)
+	fmt.Println(events.events[1])
+	fmt.Println(events.events[2])
+
+	event2.User.Email = []string{"zzzzzzzzzzzzzzzz", "xxxxxxxxxxxxxxxxx"}
+	events.editEvent(event2)
+	fmt.Println(events.events[1])
+	fmt.Println(events.events[2])
 }

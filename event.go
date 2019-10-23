@@ -8,23 +8,47 @@ package main
 
 import (
 	"github.com/golang/protobuf/ptypes"
+	"sync"
 )
 
 // interface for any storage
-// mutex for edit
 
-//type dbEvents struct {
-//	sync.Mutex
-//	Events
-//}
+var globID uint32
 
-func (m *Events) addEvent(event *Event) {
-	m.Events = append(m.Events, event)
+type dbEvents struct {
+	sync.RWMutex
+	events map[uint32]*Event
+}
+
+func newDBEvents() *dbEvents {
+	return &dbEvents{
+		events: make(map[uint32]*Event),
+	}
+}
+
+func (db *dbEvents) addEvent(event *Event) {
+	db.Lock()
+	defer db.Unlock()
+	db.events[event.Id] = event
+}
+
+func (db *dbEvents) delEvent(event *Event) {
+	db.Lock()
+	defer db.Unlock()
+	db.events[event.Id].DeletedAt = ptypes.TimestampNow()
+}
+
+func (db *dbEvents) editEvent(event *Event) {
+	db.Lock()
+	defer db.Unlock()
+	event.UpdatedAt = ptypes.TimestampNow()
+	db.events[event.Id] = event
 }
 
 func newEvent() *Event {
+	globID++
 	return &Event{
-		Id:        1,
+		Id:        globID,
 		CreatedAt: ptypes.TimestampNow(),
 		UpdatedAt: ptypes.TimestampNow(),
 		DeletedAt: nil,
