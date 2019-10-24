@@ -38,15 +38,18 @@ func main() {
 	event2.Body = "3333333333333333333"
 	_ = events.addEvent(event2)
 
-	fmt.Println(events.events)
+	fmt.Println(events.getAllEvents())
 	fmt.Println("--------------------------")
 
 	_ = events.delEvent(event1.Id)
-	fmt.Println(events.events)
+	fmt.Println(events.getAllEvents())
 	fmt.Println("--------------------------")
 
 	event2.User.Email = []string{"zzzzzzzzzzzzzzzz", "xxxxxxxxxxxxxxxxx"}
 	_ = events.editEvent(event2)
-	fmt.Println(events.events)
+	fmt.Println(events.getAllEvents())
+	fmt.Println("--------------------------")
+
+	fmt.Println(events.getEvent(2))
 	fmt.Println("--------------------------")
 }
