@@ -4,7 +4,7 @@
  * Copyright (c) 2019 - Eugene Klimov
  */
 
-package main
+package calendar
 
 import "github.com/golang/protobuf/ptypes"
 
