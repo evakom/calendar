@@ -8,11 +8,11 @@ package calendar
 
 type db interface {
 	newDB() interface{}
-	addEvent(event *Event) error
-	editEvent(event *Event) error
+	addEvent(event Event) error
+	editEvent(event Event) error
 	delEvent(id uint32) error
-	getEvent(id uint32) *Event
-	getAllEvents() []*Event
+	getEvent(id uint32) (Event, error)
+	getAllEvents() []Event
 }
 
 func newDB(d db) interface{} {
