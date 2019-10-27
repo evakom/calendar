@@ -15,12 +15,12 @@ import (
 // DBMapEvents is the base struct for using map db.
 type DBMapEvents struct {
 	sync.RWMutex
-	Events map[uint32]*Event
+	Events map[uint32]Event
 }
 
 func newMapDB() *DBMapEvents {
 	return &DBMapEvents{
-		Events: make(map[uint32]*Event),
+		Events: make(map[uint32]Event),
 	}
 }
 
@@ -28,7 +28,7 @@ func newMapDB() *DBMapEvents {
 func (db *DBMapEvents) AddEvent(event Event) error {
 	db.Lock()
 	defer db.Unlock()
-	db.Events[event.Id] = &event
+	db.Events[event.Id] = event
 	return nil
 }
 
@@ -39,7 +39,10 @@ func (db *DBMapEvents) DelEvent(id uint32) error {
 	}
 	db.Lock()
 	defer db.Unlock()
-	db.Events[id].DeletedAt = ptypes.TimestampNow()
+	e := db.Events[id]
+	e.DeletedAt = ptypes.TimestampNow()
+	db.Events[id] = e
+	//db.Events[id].DeletedAt = ptypes.TimestampNow()
 	return nil
 }
 
@@ -51,7 +54,7 @@ func (db *DBMapEvents) EditEvent(event Event) error {
 	db.Lock()
 	defer db.Unlock()
 	event.UpdatedAt = ptypes.TimestampNow()
-	db.Events[event.Id] = &event
+	db.Events[event.Id] = event
 	return nil
 }
 
@@ -61,16 +64,16 @@ func (db *DBMapEvents) GetEvent(id uint32) (Event, error) {
 		return Event{}, fmt.Errorf("event id = %d not found", id)
 	}
 	if db.Events[id].DeletedAt != nil {
-		return Event{}, fmt.Errorf("event id = %d deleted", id)
+		return Event{}, fmt.Errorf("event id = %d already deleted", id)
 	}
-	return *db.Events[id], nil
+	return db.Events[id], nil
 }
 
 // GetAllEvents return all events slice.
 func (db *DBMapEvents) GetAllEvents() []Event {
 	events := make([]Event, 0)
 	for _, event := range db.Events {
-		events = append(events, *event)
+		events = append(events, event)
 	}
 	return events
 }
