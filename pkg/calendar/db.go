@@ -15,7 +15,7 @@ type db interface {
 	GetAllEvents() []Event
 }
 
-// NewDB returns new db interface
+// NewDB returns new db interface.
 func NewDB(d db) interface{} {
 	return d.newDB()
 }
