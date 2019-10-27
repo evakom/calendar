@@ -36,9 +36,5 @@ func main() {
 		log.Fatalf("unsupported DB type: %s", conf.DBType)
 	}
 
-	if db.MapDB != nil {
-		calendar.PrintTestData(db.MapDB)
-	} //else if db.PostgresDB != nil {
-	//calendar.PrintTestData(db.PostgresDB)
-	//}
+	calendar.PrintTestData(db)
 }

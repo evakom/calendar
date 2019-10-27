@@ -21,19 +21,13 @@ type DB interface {
 	GetAllEvents() []Event
 }
 
-// DBTypes struct helps for getting new db by type
-type DBTypes struct {
-	MapDB *DBMapEvents
-	//PostgresDB *DBPostgresEvents
-}
-
 // NewDB returns DB by db type
-func NewDB(dbType string) *DBTypes {
+func NewDB(dbType string) DB {
 	switch dbType {
 	case MapDBType:
-		return &DBTypes{MapDB: newMapDB()}
+		return newMapDB()
 		//case PostgresDBType:
-		//return &DBType{postgresDB:newPostgresDB()}
+		//return newPostgresDB
 	}
 	return nil
 }

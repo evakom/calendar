@@ -16,10 +16,7 @@ import (
 )
 
 // PrintTestData print test calendar scenarios
-func PrintTestData(e interface{}) {
-
-	events := e.(*DBMapEvents)
-	//events := e.(*DBPostgresEvents)
+func PrintTestData(events DB) {
 
 	event1 := NewEvent()
 	out, err := proto.Marshal(event1)

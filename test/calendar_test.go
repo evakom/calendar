@@ -10,9 +10,16 @@ import (
 	"github.com/evakom/calendar/pkg/calendar"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
+	"log"
+	"os"
 	"reflect"
 	"strings"
 	"testing"
+)
+
+const (
+	EnvCalendarConfigPath  = "CALENDAR_CONFIG_PATH"
+	FileCalendarConfigPath = "../configs/calendar.yml"
 )
 
 func TestNewEvent(t *testing.T) {
@@ -50,7 +57,7 @@ func TestAddEvent(t *testing.T) {
 	e = *calendar.NewEvent()
 	e.Duration = 555
 	_ = events.AddEvent(e)
-	l := len(events.Events)
+	l := len(events.GetAllEvents())
 	if l != 2 {
 		t.Errorf("After adding 2 events to MapDB length != 2, actual length = %d", l)
 	}
@@ -117,10 +124,14 @@ func TestGetAllEvents(t *testing.T) {
 	}
 }
 
-func createNewDB() *calendar.DBMapEvents {
-	return calendar.NewDB(calendar.MapDBType).MapDB
+func createNewDB() calendar.DB {
+	confPath := os.Getenv(EnvCalendarConfigPath)
+	if confPath == "" {
+		confPath = FileCalendarConfigPath
+	}
+	conf := calendar.NewConfig(confPath)
+	if err := conf.ReadParameters(); err != nil {
+		log.Fatalln(err)
+	}
+	return calendar.NewDB(conf.DBType)
 }
-
-//func createNewDB() *calendar.DBPostgresEvents {
-//	return calendar.NewDB(calendar.PostgresDBType).PostgresDB
-//}
