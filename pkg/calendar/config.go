@@ -16,6 +16,7 @@ import (
 type Config struct {
 	confPath string
 	DBType   string `yaml:"dbtype"`
+	LogLevel string `yaml:"loglevel"`
 }
 
 // NewConfig creates new config struct.
