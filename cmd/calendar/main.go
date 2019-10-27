@@ -11,9 +11,29 @@ import (
 	"github.com/evakom/calendar/pkg/calendar"
 	"github.com/golang/protobuf/proto"
 	"log"
+	"os"
+)
+
+// Constants
+const (
+	EnvCalendarConfigPath  = "CALENDAR_CONFIG_PATH"
+	FileCalendarConfigPath = "./configs/calendar.yml"
 )
 
 func main() {
+
+	confPath := os.Getenv(EnvCalendarConfigPath)
+
+	if confPath == "" {
+		confPath = FileCalendarConfigPath
+	}
+
+	conf := calendar.NewConfig(confPath)
+	if err := conf.ReadParameters(); err != nil {
+		log.Fatalln(err)
+	}
+
+	fmt.Println(conf)
 
 	// ----------------- test code - will be deleted
 	events := calendar.NewMapDB()
