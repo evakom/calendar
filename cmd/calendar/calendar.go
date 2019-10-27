@@ -16,7 +16,7 @@ import (
 func main() {
 
 	// ----------------- test code - will be deleted
-	events := calendar.NewDB(&calendar.DBMapEvents{}).(*calendar.DBMapEvents)
+	events := calendar.NewMapDB()
 
 	event1 := calendar.NewEvent()
 

@@ -6,8 +6,8 @@
 
 package calendar
 
-type db interface {
-	newDB() interface{}
+// DB is thw main interface for any DBs
+type DB interface {
 	AddEvent(event Event) error
 	EditEvent(event Event) error
 	DelEvent(id uint32) error
@@ -15,7 +15,7 @@ type db interface {
 	GetAllEvents() []Event
 }
 
-// NewDB returns new db interface.
-func NewDB(d db) interface{} {
-	return d.newDB()
+// NewMapDB returns new map db.
+func NewMapDB() *DBMapEvents {
+	return newMapDB()
 }

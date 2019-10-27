@@ -7,7 +7,6 @@
 package test
 
 import (
-	"fmt"
 	"github.com/evakom/calendar/pkg/calendar"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
@@ -21,12 +20,6 @@ func TestNewEvent(t *testing.T) {
 	e2 := calendar.NewEvent().GetId()
 	if e2 == e1 {
 		t.Errorf("'id1 = %v' same as 'id2 = %v'", e1, e2)
-	}
-}
-
-func TestNewDB(t *testing.T) {
-	if _, err := createNewDB(); err != nil {
-		t.Fatalf("Can't create new DB, error: %v", err)
 	}
 }
 
@@ -49,7 +42,7 @@ func TestProto(t *testing.T) {
 }
 
 func TestAddEvent(t *testing.T) {
-	events, _ := createNewDB()
+	events := createNewDB()
 	e := *calendar.NewEvent()
 	e.Subject = "222222222222222222222"
 	e.Body = "3333333333333333333"
@@ -64,7 +57,7 @@ func TestAddEvent(t *testing.T) {
 }
 
 func TestGetEvent(t *testing.T) {
-	events, _ := createNewDB()
+	events := createNewDB()
 	e1 := *calendar.NewEvent()
 	_ = events.AddEvent(e1)
 	e2 := *calendar.NewEvent()
@@ -76,7 +69,7 @@ func TestGetEvent(t *testing.T) {
 }
 
 func TestEditEvent(t *testing.T) {
-	events, _ := createNewDB()
+	events := createNewDB()
 	e1 := *calendar.NewEvent()
 	_ = events.AddEvent(e1)
 
@@ -98,7 +91,7 @@ func TestEditEvent(t *testing.T) {
 }
 
 func TestDelEvent(t *testing.T) {
-	events, _ := createNewDB()
+	events := createNewDB()
 	e := *calendar.NewEvent()
 	_ = events.AddEvent(e)
 	if err := events.DelEvent(e.Id); err != nil {
@@ -111,7 +104,7 @@ func TestDelEvent(t *testing.T) {
 }
 
 func TestGetAllEvents(t *testing.T) {
-	events, _ := createNewDB()
+	events := createNewDB()
 	e1 := *calendar.NewEvent()
 	_ = events.AddEvent(e1)
 	e2 := *calendar.NewEvent()
@@ -124,10 +117,6 @@ func TestGetAllEvents(t *testing.T) {
 	}
 }
 
-func createNewDB() (*calendar.DBMapEvents, error) {
-	events := calendar.NewDB(&calendar.DBMapEvents{})
-	if _, ok := events.(*calendar.DBMapEvents); !ok {
-		return nil, fmt.Errorf("error while cast interface{} to *dbMapEvents:\n%#v", events)
-	}
-	return events.(*calendar.DBMapEvents), nil
+func createNewDB() *calendar.DBMapEvents {
+	return calendar.NewMapDB()
 }

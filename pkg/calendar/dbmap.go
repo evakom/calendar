@@ -18,7 +18,7 @@ type DBMapEvents struct {
 	Events map[uint32]*Event
 }
 
-func (db *DBMapEvents) newDB() interface{} {
+func newMapDB() *DBMapEvents {
 	return &DBMapEvents{
 		Events: make(map[uint32]*Event),
 	}
