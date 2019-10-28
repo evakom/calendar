@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"github.com/evakom/calendar/internal/domain/interfaces"
 	"github.com/evakom/calendar/internal/domain/models"
+	"log"
 )
 
 // PrintTestData print test calendar scenarios
@@ -37,16 +38,23 @@ func PrintTestData(events interfaces.DB) {
 	fmt.Printf("%+v\n", events.GetAllEvents())
 	fmt.Println("Added event ^^^ --------------------------")
 
-	_ = events.DelEvent(event1.ID)
+	if err := events.DelEvent(event1.ID); err != nil {
+		log.Println(err)
+	}
 	fmt.Printf("%+v\n", events.GetAllEvents())
 	fmt.Println("Deleted event ^^^ --------------------------")
 
 	event2.User.Email = []string{"zzzzzzzzzzzzzzzz", "xxxxxxxxxxxxxxxxx"}
-	_ = events.EditEvent(event2)
+	if err := events.EditEvent(event2); err != nil {
+		log.Println(err)
+	}
 	fmt.Printf("%+v\n", events.GetAllEvents())
 	fmt.Println("Edit event ^^^ --------------------------")
 
-	e2, _ := events.GetOneEvent(2)
+	e2, err := events.GetOneEvent(2)
+	if err != nil {
+		log.Println(err)
+	}
 	fmt.Printf("%+v\n", e2)
 	fmt.Println("Get one event ^^^ --------------------------")
 }
