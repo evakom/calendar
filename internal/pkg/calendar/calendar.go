@@ -4,8 +4,6 @@
  * Copyright (c) 2019 - Eugene Klimov
  */
 
-//go:generate protoc --go_out=. calendar.proto
-
 // Package calendar implements simple event calendar via protobuf.
 package calendar
 
