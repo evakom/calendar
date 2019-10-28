@@ -7,7 +7,8 @@
 package test
 
 import (
-	"github.com/evakom/calendar/internal/pkg/calendar"
+	"github.com/evakom/calendar/internal/domain/interfaces"
+	"github.com/evakom/calendar/internal/domain/models"
 	"log"
 	"os"
 	"reflect"
@@ -20,8 +21,8 @@ const (
 )
 
 func TestNewEvent(t *testing.T) {
-	e1 := calendar.NewEvent().ID
-	e2 := calendar.NewEvent().ID
+	e1 := models.NewEvent().ID
+	e2 := models.NewEvent().ID
 	if e2 == e1 {
 		t.Errorf("'id1 = %v' same as 'id2 = %v'", e1, e2)
 	}
@@ -48,11 +49,11 @@ func TestNewEvent(t *testing.T) {
 
 func TestAddEvent(t *testing.T) {
 	events := createNewDB()
-	e := calendar.NewEvent()
+	e := models.NewEvent()
 	e.Subject = "222222222222222222222"
 	e.Body = "3333333333333333333"
 	_ = events.AddEvent(e)
-	e = calendar.NewEvent()
+	e = models.NewEvent()
 	e.Duration = 555
 	_ = events.AddEvent(e)
 	l := len(events.GetAllEvents())
@@ -63,9 +64,9 @@ func TestAddEvent(t *testing.T) {
 
 func TestGetEvent(t *testing.T) {
 	events := createNewDB()
-	e1 := calendar.NewEvent()
+	e1 := models.NewEvent()
 	_ = events.AddEvent(e1)
-	e2 := calendar.NewEvent()
+	e2 := models.NewEvent()
 	_ = events.AddEvent(e2)
 	e3, _ := events.GetOneEvent(e1.ID)
 	if !reflect.DeepEqual(e1, e3) {
@@ -75,7 +76,7 @@ func TestGetEvent(t *testing.T) {
 
 func TestEditEvent(t *testing.T) {
 	events := createNewDB()
-	e1 := calendar.NewEvent()
+	e1 := models.NewEvent()
 	_ = events.AddEvent(e1)
 
 	e2, _ := events.GetOneEvent(e1.ID)
@@ -97,7 +98,7 @@ func TestEditEvent(t *testing.T) {
 
 func TestDelEvent(t *testing.T) {
 	events := createNewDB()
-	e := calendar.NewEvent()
+	e := models.NewEvent()
 	_ = events.AddEvent(e)
 	if err := events.DelEvent(e.ID); err != nil {
 		t.Errorf("Error while delete event with ID = %d, error: %v", e.ID, err)
@@ -110,9 +111,9 @@ func TestDelEvent(t *testing.T) {
 
 func TestGetAllEvents(t *testing.T) {
 	events := createNewDB()
-	e1 := calendar.NewEvent()
+	e1 := models.NewEvent()
 	_ = events.AddEvent(e1)
-	e2 := calendar.NewEvent()
+	e2 := models.NewEvent()
 	_ = events.AddEvent(e2)
 	e3 := events.GetAllEvents()
 	l := len(e3)
@@ -122,14 +123,14 @@ func TestGetAllEvents(t *testing.T) {
 	}
 }
 
-func createNewDB() calendar.DB {
+func createNewDB() interfaces.DB {
 	confPath := os.Getenv(EnvCalendarConfigPath)
 	if confPath == "" {
 		confPath = FileCalendarConfigPath
 	}
-	conf := calendar.NewConfig(confPath)
+	conf := models.NewConfig(confPath)
 	if err := conf.ReadParameters(); err != nil {
 		log.Fatalln(err)
 	}
-	return calendar.NewDB(conf.DBType)
+	return interfaces.NewDB(conf.DBType)
 }

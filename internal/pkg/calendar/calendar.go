@@ -9,12 +9,14 @@ package calendar
 
 import (
 	"fmt"
+	"github.com/evakom/calendar/internal/domain/interfaces"
+	"github.com/evakom/calendar/internal/domain/models"
 )
 
 // PrintTestData print test calendar scenarios
-func PrintTestData(events DB) {
+func PrintTestData(events interfaces.DB) {
 
-	event1 := NewEvent()
+	event1 := models.NewEvent()
 	//out, err := proto.Marshal(event1)
 	//if err != nil {
 	//	log.Fatalln("Failed to encode event:", err)
@@ -27,7 +29,7 @@ func PrintTestData(events DB) {
 	event1.Location = "qqqqqqqqqqqqqqqqqqqqqq"
 	_ = events.AddEvent(event1)
 
-	event2 := NewEvent()
+	event2 := models.NewEvent()
 	event2.Subject = "222222222222222222222"
 	event2.Body = "3333333333333333333"
 	_ = events.AddEvent(event2)

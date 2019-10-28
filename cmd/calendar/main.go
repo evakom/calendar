@@ -7,6 +7,8 @@
 package main
 
 import (
+	"github.com/evakom/calendar/internal/domain/interfaces"
+	"github.com/evakom/calendar/internal/domain/models"
 	"github.com/evakom/calendar/internal/pkg/calendar"
 	"log"
 	"os"
@@ -26,12 +28,12 @@ func main() {
 		confPath = FileCalendarConfigPath
 	}
 
-	conf := calendar.NewConfig(confPath)
+	conf := models.NewConfig(confPath)
 	if err := conf.ReadParameters(); err != nil {
 		log.Fatalln(err)
 	}
 
-	db := calendar.NewDB(conf.DBType)
+	db := interfaces.NewDB(conf.DBType)
 	if db == nil {
 		log.Fatalf("unsupported DB type: %s\n", conf.DBType)
 	}

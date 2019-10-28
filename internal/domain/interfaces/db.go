@@ -4,7 +4,10 @@
  * Copyright (c) 2019 - Eugene Klimov
  */
 
-package calendar
+// Package interfaces implements interfaces.
+package interfaces
+
+import "github.com/evakom/calendar/internal/domain/models"
 
 // Constants
 const (
@@ -14,20 +17,20 @@ const (
 
 // DB is thw main interface for any DBs
 type DB interface {
-	AddEvent(event Event) error
-	EditEvent(event Event) error
+	AddEvent(event models.Event) error
+	EditEvent(event models.Event) error
 	DelEvent(id int) error
-	GetOneEvent(id int) (Event, error)
-	GetAllEvents() []Event
+	GetOneEvent(id int) (models.Event, error)
+	GetAllEvents() []models.Event
 }
 
 // NewDB returns DB by db type
 func NewDB(dbType string) DB {
 	switch dbType {
 	case MapDBType:
-		return newMapDB()
+		return models.NewMapDB()
 		//case PostgresDBType:
-		//return newPostgresDB()
+		//return models.NewPostgresDB()
 	}
 	return nil
 }

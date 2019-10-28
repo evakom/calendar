@@ -4,7 +4,7 @@
  * Copyright (c) 2019 - Eugene Klimov
  */
 
-// Package api implements ... .
+// Package api implements grpc api.
 package api
 
 //go:generate protoc --go_out=. --proto_path=../../../api api.proto

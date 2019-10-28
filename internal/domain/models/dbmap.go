@@ -4,7 +4,7 @@
  * Copyright (c) 2019 - Eugene Klimov
  */
 
-package calendar
+package models
 
 import (
 	"fmt"
@@ -18,7 +18,8 @@ type DBMapEvents struct {
 	Events map[int]Event
 }
 
-func newMapDB() *DBMapEvents {
+// NewMapDB returns new map db struct
+func NewMapDB() *DBMapEvents {
 	return &DBMapEvents{
 		Events: make(map[int]Event),
 	}
