@@ -16,8 +16,8 @@ const (
 type DB interface {
 	AddEvent(event Event) error
 	EditEvent(event Event) error
-	DelEvent(id uint32) error
-	GetOneEvent(id uint32) (Event, error)
+	DelEvent(id int) error
+	GetOneEvent(id int) (Event, error)
 	GetAllEvents() []Event
 }
 

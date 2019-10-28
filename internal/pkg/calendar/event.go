@@ -6,29 +6,43 @@
 
 package calendar
 
-import "github.com/golang/protobuf/ptypes"
+import (
+	"time"
+)
 
-var globID uint32
+var globID int
+
+// Event is the base event struct.
+type Event struct {
+	ID        int
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt time.Time
+	OccursAt  time.Time
+	Subject   string
+	Body      string
+	Duration  int
+	Location  string
+	User      User
+}
 
 // NewEvent returns new example event.
-func NewEvent() *Event {
+func NewEvent() Event {
 	globID++
-	return &Event{
-		Id:        globID,
-		CreatedAt: ptypes.TimestampNow(),
-		UpdatedAt: ptypes.TimestampNow(),
-		DeletedAt: nil,
-		OccursAt:  nil,
+	return Event{
+		ID:        globID,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 		Subject:   "111",
 		Body:      "222",
 		Duration:  333,
 		Location:  "Moscow",
-		User: &User{
-			Id:       1,
+		User: User{
+			ID:       1,
 			Name:     "qqq",
 			Email:    []string{"www"},
 			Mobile:   []string{"+777"},
-			Birthday: ptypes.TimestampNow(),
+			Birthday: time.Now(),
 		},
 	}
 }

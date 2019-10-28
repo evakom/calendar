@@ -8,19 +8,19 @@ package calendar
 
 import (
 	"fmt"
-	"github.com/golang/protobuf/ptypes"
 	"sync"
+	"time"
 )
 
 // DBMapEvents is the base struct for using map db.
 type DBMapEvents struct {
 	sync.RWMutex
-	Events map[uint32]Event
+	Events map[int]Event
 }
 
 func newMapDB() *DBMapEvents {
 	return &DBMapEvents{
-		Events: make(map[uint32]Event),
+		Events: make(map[int]Event),
 	}
 }
 
@@ -28,41 +28,41 @@ func newMapDB() *DBMapEvents {
 func (db *DBMapEvents) AddEvent(event Event) error {
 	db.Lock()
 	defer db.Unlock()
-	db.Events[event.Id] = event
+	db.Events[event.ID] = event
 	return nil
 }
 
 // DelEvent deletes one event by id
-func (db *DBMapEvents) DelEvent(id uint32) error {
+func (db *DBMapEvents) DelEvent(id int) error {
 	if _, ok := db.Events[id]; !ok {
 		return fmt.Errorf("event id = %d not found", id)
 	}
 	db.Lock()
 	defer db.Unlock()
 	e := db.Events[id]
-	e.DeletedAt = ptypes.TimestampNow()
+	e.DeletedAt = time.Now()
 	db.Events[id] = e
 	return nil
 }
 
 // EditEvent updates one event.
 func (db *DBMapEvents) EditEvent(event Event) error {
-	if _, ok := db.Events[event.Id]; !ok {
-		return fmt.Errorf("event id = %d not found", event.Id)
+	if _, ok := db.Events[event.ID]; !ok {
+		return fmt.Errorf("event id = %d not found", event.ID)
 	}
 	db.Lock()
 	defer db.Unlock()
-	event.UpdatedAt = ptypes.TimestampNow()
-	db.Events[event.Id] = event
+	event.UpdatedAt = time.Now()
+	db.Events[event.ID] = event
 	return nil
 }
 
-// GetEvent returns one event by id.
-func (db *DBMapEvents) GetOneEvent(id uint32) (Event, error) {
+// GetOneEvent returns one event by id.
+func (db *DBMapEvents) GetOneEvent(id int) (Event, error) {
 	if _, ok := db.Events[id]; !ok {
 		return Event{}, fmt.Errorf("event id = %d not found", id)
 	}
-	if db.Events[id].DeletedAt != nil {
+	if !db.Events[id].DeletedAt.IsZero() {
 		return Event{}, fmt.Errorf("event id = %d already deleted", id)
 	}
 	return db.Events[id], nil
