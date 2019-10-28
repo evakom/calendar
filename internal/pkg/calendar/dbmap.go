@@ -58,7 +58,7 @@ func (db *DBMapEvents) EditEvent(event Event) error {
 }
 
 // GetEvent returns one event by id.
-func (db *DBMapEvents) GetEvent(id uint32) (Event, error) {
+func (db *DBMapEvents) GetOneEvent(id uint32) (Event, error) {
 	if _, ok := db.Events[id]; !ok {
 		return Event{}, fmt.Errorf("event id = %d not found", id)
 	}

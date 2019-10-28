@@ -17,7 +17,7 @@ type DB interface {
 	AddEvent(event Event) error
 	EditEvent(event Event) error
 	DelEvent(id uint32) error
-	GetEvent(id uint32) (Event, error)
+	GetOneEvent(id uint32) (Event, error)
 	GetAllEvents() []Event
 }
 
@@ -27,7 +27,7 @@ func NewDB(dbType string) DB {
 	case MapDBType:
 		return newMapDB()
 		//case PostgresDBType:
-		//return newPostgresDB
+		//return newPostgresDB()
 	}
 	return nil
 }

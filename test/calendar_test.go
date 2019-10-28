@@ -7,7 +7,7 @@
 package test
 
 import (
-	"github.com/evakom/calendar/pkg/calendar"
+	"github.com/evakom/calendar/internal/pkg/calendar"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"log"
@@ -19,7 +19,7 @@ import (
 
 const (
 	EnvCalendarConfigPath  = "CALENDAR_CONFIG_PATH"
-	FileCalendarConfigPath = "../configs/calendar.yml"
+	FileCalendarConfigPath = "../internal/configs/calendar.yml"
 )
 
 func TestNewEvent(t *testing.T) {
@@ -69,7 +69,7 @@ func TestGetEvent(t *testing.T) {
 	_ = events.AddEvent(e1)
 	e2 := *calendar.NewEvent()
 	_ = events.AddEvent(e2)
-	e3, _ := events.GetEvent(e1.Id)
+	e3, _ := events.GetOneEvent(e1.Id)
 	if !reflect.DeepEqual(e1, e3) {
 		t.Errorf("Event1 not equal Event3 after get from DB:\n%#v\n%#v", e1, e3)
 	}
@@ -80,12 +80,12 @@ func TestEditEvent(t *testing.T) {
 	e1 := *calendar.NewEvent()
 	_ = events.AddEvent(e1)
 
-	e2, _ := events.GetEvent(e1.Id)
+	e2, _ := events.GetOneEvent(e1.Id)
 	e2.Subject = "11111111111111111"
 	e2.Body = "22222222222222222"
 	_ = events.EditEvent(e2)
 
-	e3, _ := events.GetEvent(e1.Id)
+	e3, _ := events.GetOneEvent(e1.Id)
 	if e3.Subject != e2.Subject || e3.Body != e2.Body {
 		t.Errorf("Event1 not properly updated in the DB:\nExpected: %+v\nActual: %+v", e2, e3)
 	}
@@ -104,7 +104,7 @@ func TestDelEvent(t *testing.T) {
 	if err := events.DelEvent(e.Id); err != nil {
 		t.Errorf("Error while delete event with ID = %d, error: %v", e.Id, err)
 	}
-	_, err := events.GetEvent(e.Id)
+	_, err := events.GetOneEvent(e.Id)
 	if err == nil {
 		t.Errorf("Error expected but was not returned: %v", err)
 	}

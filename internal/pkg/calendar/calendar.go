@@ -49,7 +49,7 @@ func PrintTestData(events DB) {
 	fmt.Printf("%+v\n", events.GetAllEvents())
 	fmt.Println("Edit event ^^^ --------------------------")
 
-	e2, _ := events.GetEvent(2)
+	e2, _ := events.GetOneEvent(2)
 	fmt.Printf("%+v\n", e2)
 	fmt.Println("Get one event ^^^ --------------------------")
 }
