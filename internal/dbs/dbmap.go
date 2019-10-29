@@ -31,6 +31,9 @@ func NewMapDB() (*DBMapEvents, error) {
 func (db *DBMapEvents) AddEvent(event models.Event) error {
 	db.Lock()
 	defer db.Unlock()
+	if _, ok := db.events[event.ID]; ok {
+		return fmt.Errorf("event id = %d already exists", event.ID)
+	}
 	db.events[event.ID] = event
 	return nil
 }
