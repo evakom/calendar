@@ -4,7 +4,7 @@
  * Copyright (c) 2019 - Eugene Klimov
  */
 
-// Package interfaces implements interfaces.
+// Package dbs implements db interfaces.
 package dbs
 
 import (
@@ -13,8 +13,8 @@ import (
 
 // Constants
 const (
-	MapDBType = "map"
-	//PostgresDBType = "postgres"
+	MapDBType      = "map"
+	PostgresDBType = "postgres"
 )
 
 // NewDB returns DB by db type
@@ -22,8 +22,8 @@ func NewDB(dbType string) interfaces.DB {
 	switch dbType {
 	case MapDBType:
 		return NewMapDB()
-		//case PostgresDBType:
-		//return models.NewPostgresDB()
+	case PostgresDBType:
+		return NewPostgresDB()
 	}
 	return nil
 }

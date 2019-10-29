@@ -4,6 +4,7 @@
  * Copyright (c) 2019 - Eugene Klimov
  */
 
+// Package configs implements configs helpers.
 package configs
 
 import (

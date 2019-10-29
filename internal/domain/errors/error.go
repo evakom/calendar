@@ -7,10 +7,8 @@
 // Package errors implements base calendar errors.
 package errors
 
-import "errors"
-
 // Errors
-var (
-	ErrEventNotFound       = errors.New("event not found")
-	ErrEventAlreadyDeleted = errors.New("event already deleted")
-)
+//var (
+//	ErrEventNotFound       = errors.New("event not found")
+//	ErrEventAlreadyDeleted = errors.New("event already deleted")
+//)
