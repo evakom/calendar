@@ -8,6 +8,7 @@
 package interfaces
 
 import (
+	"github.com/evakom/calendar/internal/dbs"
 	"github.com/evakom/calendar/internal/domain/models"
 	uuid "github.com/satori/go.uuid"
 )
@@ -31,7 +32,7 @@ type DB interface {
 func NewDB(dbType string) DB {
 	switch dbType {
 	case MapDBType:
-		return models.NewMapDB()
+		return dbs.NewMapDB()
 		//case PostgresDBType:
 		//return models.NewPostgresDB()
 	}
