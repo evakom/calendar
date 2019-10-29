@@ -9,7 +9,6 @@ package configs
 
 import (
 	"fmt"
-	"github.com/evakom/calendar/internal/dbs"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 )
@@ -37,10 +36,10 @@ func (c *Config) ReadParameters() error {
 		return fmt.Errorf("error unmarshal config file: %w", err)
 	}
 	if c.DBType == "" {
-		c.DBType = dbs.MapDBType
+		c.DBType = "map"
 	}
 	if c.LogLevel == "" {
-		c.LogLevel = "info" // log.info
+		c.LogLevel = "info"
 	}
 	return nil
 }

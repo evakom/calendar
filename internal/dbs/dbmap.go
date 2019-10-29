@@ -32,7 +32,7 @@ func (db *DBMapEvents) AddEvent(event models.Event) error {
 	db.Lock()
 	defer db.Unlock()
 	if _, ok := db.events[event.ID]; ok {
-		return fmt.Errorf("event id = %d already exists", event.ID)
+		return fmt.Errorf("event id = %s already exists", event.ID.String())
 	}
 	db.events[event.ID] = event
 	return nil
@@ -41,7 +41,7 @@ func (db *DBMapEvents) AddEvent(event models.Event) error {
 // DelEvent deletes one event by id.
 func (db *DBMapEvents) DelEvent(id uuid.UUID) error {
 	if _, ok := db.events[id]; !ok {
-		return fmt.Errorf("event id = %d not found", id)
+		return fmt.Errorf("event id = %s not found", id.String())
 	}
 	db.Lock()
 	defer db.Unlock()
@@ -54,7 +54,7 @@ func (db *DBMapEvents) DelEvent(id uuid.UUID) error {
 // EditEvent updates one event.
 func (db *DBMapEvents) EditEvent(event models.Event) error {
 	if _, ok := db.events[event.ID]; !ok {
-		return fmt.Errorf("event id = %d not found", event.ID)
+		return fmt.Errorf("event id = %s not found", event.ID.String())
 	}
 	db.Lock()
 	defer db.Unlock()
@@ -74,10 +74,13 @@ func (db *DBMapEvents) GetOneEvent(id uuid.UUID) (models.Event, error) {
 	return db.events[id], nil
 }
 
-// GetAllEvents return all events slice.
+// GetAllEvents return all events slice (no deleted).
 func (db *DBMapEvents) GetAllEvents() []models.Event {
-	events := make([]models.Event, 0)
+	events := make([]models.Event, 0, len(db.events))
 	for _, event := range db.events {
+		if !event.DeletedAt.IsZero() {
+			continue
+		}
 		events = append(events, event)
 	}
 	return events

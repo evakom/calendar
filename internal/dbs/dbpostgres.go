@@ -9,7 +9,7 @@ package dbs
 import (
 	"fmt"
 	"github.com/evakom/calendar/internal/domain/models"
-	_ "github.com/jackc/pgx/stdlib"
+	_ "github.com/jackc/pgx/stdlib" // driver for postgres
 	"github.com/jmoiron/sqlx"
 	uuid "github.com/satori/go.uuid"
 )
@@ -17,7 +17,7 @@ import (
 // TODO into config
 const dsn = ""
 
-// DBMapEvents is the base struct for using map db.
+// DBPostgresEvents is the base struct for using map db.
 type DBPostgresEvents struct {
 	db *sqlx.DB
 }

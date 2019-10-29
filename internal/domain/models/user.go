@@ -21,12 +21,13 @@ type User struct {
 }
 
 // NewUser returns new user struct.
-func NewUser() User {
-	return User{
-		ID:       uuid.NewV4(),
-		Name:     "qqq",
-		Email:    []string{"www"},
-		Mobile:   []string{"+777"},
-		Birthday: time.Now(),
-	}
-}
+// TODO get events for specific user
+//func NewUser() User {
+//	return User{
+//		ID:       uuid.NewV4(),
+//		Name:     "qqq",
+//		Email:    []string{"www"},
+//		Mobile:   []string{"+777"},
+//		Birthday: time.Now(),
+//	}
+//}
