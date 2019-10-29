@@ -8,8 +8,8 @@ package main
 
 import (
 	"github.com/evakom/calendar/internal/configs"
+	"github.com/evakom/calendar/internal/dbs"
 	"github.com/evakom/calendar/internal/domain/calendar"
-	"github.com/evakom/calendar/internal/domain/interfaces"
 	"log"
 	"os"
 )
@@ -33,7 +33,7 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	db := interfaces.NewDB(conf.DBType)
+	db := dbs.NewDB(conf.DBType)
 	if db == nil {
 		log.Fatalf("unsupported DB type: %s\n", conf.DBType)
 	}

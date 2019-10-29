@@ -8,6 +8,7 @@ package test
 
 import (
 	"github.com/evakom/calendar/internal/configs"
+	"github.com/evakom/calendar/internal/dbs"
 	"github.com/evakom/calendar/internal/domain/interfaces"
 	"github.com/evakom/calendar/internal/domain/models"
 	"log"
@@ -133,5 +134,5 @@ func createNewDB() interfaces.DB {
 	if err := conf.ReadParameters(); err != nil {
 		log.Fatalln(err)
 	}
-	return interfaces.NewDB(conf.DBType)
+	return dbs.NewDB(conf.DBType)
 }
