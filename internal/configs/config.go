@@ -9,13 +9,14 @@ package configs
 
 import (
 	"fmt"
+	"github.com/evakom/calendar/internal/dbs"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 )
 
 // Config is the main config struct.
 type Config struct {
-	confPath string
+	confPath string `yaml:"-"`
 	DBType   string `yaml:"db_type"`
 	LogLevel string `yaml:"log_level"`
 }
@@ -34,6 +35,12 @@ func (c *Config) ReadParameters() error {
 	err = yaml.Unmarshal(yamlFile, c)
 	if err != nil {
 		return fmt.Errorf("error unmarshal config file: %w", err)
+	}
+	if c.DBType == "" {
+		c.DBType = dbs.MapDBType
+	}
+	if c.LogLevel == "" {
+		c.LogLevel = "info" // log.info
 	}
 	return nil
 }
