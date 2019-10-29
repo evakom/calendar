@@ -18,12 +18,12 @@ const (
 )
 
 // NewDB returns DB by db type
-func NewDB(dbType string) interfaces.DB {
+func NewDB(dbType string) (interfaces.DB, error) {
 	switch dbType {
 	case MapDBType:
 		return NewMapDB()
 	case PostgresDBType:
 		return NewPostgresDB()
 	}
-	return nil
+	return nil, nil
 }

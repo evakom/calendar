@@ -21,10 +21,10 @@ type DBMapEvents struct {
 }
 
 // NewMapDB returns new map db struct.
-func NewMapDB() *DBMapEvents {
+func NewMapDB() (*DBMapEvents, error) {
 	return &DBMapEvents{
 		events: make(map[uuid.UUID]models.Event),
-	}
+	}, nil
 }
 
 // AddEvent adds event to map db.

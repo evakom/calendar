@@ -7,7 +7,11 @@
 package dbs
 
 import (
+	"fmt"
+	"github.com/evakom/calendar/internal/domain/models"
+	_ "github.com/jackc/pgx/stdlib"
 	"github.com/jmoiron/sqlx"
+	uuid "github.com/satori/go.uuid"
 )
 
 // TODO into config
@@ -15,76 +19,48 @@ const dsn = ""
 
 // DBMapEvents is the base struct for using map db.
 type DBPostgresEvents struct {
-	db  *sqlx.DB
-	err error
+	db *sqlx.DB
 }
 
 // NewPostgresDB returns new postgres db struct.
-func NewPostgresDB() *DBPostgresEvents {
+func NewPostgresDB() (*DBPostgresEvents, error) {
 	db, err := sqlx.Open("pgx", dsn)
 	if err != nil {
-		return &DBPostgresEvents{err: err}
+		return &DBPostgresEvents{}, fmt.Errorf("error open db: %w", err)
 	}
 	err = db.Ping()
 	if err != nil {
-		return &DBPostgresEvents{err: err}
+		return &DBPostgresEvents{}, fmt.Errorf("error ping db: %w", err)
 	}
-	return &DBPostgresEvents{db: db}
+	return &DBPostgresEvents{db: db}, nil
 }
 
-//// AddEvent adds event to map db.
-//func (db *DBMapEvents) AddEvent(event models.Event) error {
-//	db.Lock()
-//	defer db.Unlock()
-//	db.Events[event.ID] = event
-//	return nil
-//}
-//
-//// DelEvent deletes one event by id.
-//func (db *DBMapEvents) DelEvent(id uuid.UUID) error {
-//	if _, ok := db.Events[id]; !ok {
-//		return errors.ErrEventNotFound
-//		//return fmt.Errorf("event id = %d not found", id)
-//	}
-//	db.Lock()
-//	defer db.Unlock()
-//	e := db.Events[id]
-//	e.DeletedAt = time.Now()
-//	db.Events[id] = e
-//	return nil
-//}
-//
-//// EditEvent updates one event.
-//func (db *DBMapEvents) EditEvent(event models.Event) error {
-//	if _, ok := db.Events[event.ID]; !ok {
-//		return errors.ErrEventNotFound
-//		//return fmt.Errorf("event id = %d not found", event.ID)
-//	}
-//	db.Lock()
-//	defer db.Unlock()
-//	event.UpdatedAt = time.Now()
-//	db.Events[event.ID] = event
-//	return nil
-//}
-//
-//// GetOneEvent returns one event by id.
-//func (db *DBMapEvents) GetOneEvent(id uuid.UUID) (models.Event, error) {
-//	if _, ok := db.Events[id]; !ok {
-//		return models.Event{}, errors.ErrEventNotFound
-//		//return Event{}, fmt.Errorf("event id = %d not found", id)
-//	}
-//	if !db.Events[id].DeletedAt.IsZero() {
-//		return models.Event{}, errors.ErrEventAlreadyDeleted
-//		//return Event{}, fmt.Errorf("event id = %d already deleted", id)
-//	}
-//	return db.Events[id], nil
-//}
-//
-//// GetAllEvents return all events slice.
-//func (db *DBMapEvents) GetAllEvents() []models.Event {
-//	events := make([]models.Event, 0)
-//	for _, event := range db.Events {
-//		events = append(events, event)
-//	}
-//	return events
-//}
+// AddEvent adds event to postgres db.
+func (db *DBPostgresEvents) AddEvent(event models.Event) error {
+	// TODO
+	return nil
+}
+
+// DelEvent deletes one event by id.
+func (db *DBPostgresEvents) DelEvent(id uuid.UUID) error {
+	// TODO
+	return nil
+}
+
+// EditEvent updates one event.
+func (db *DBPostgresEvents) EditEvent(event models.Event) error {
+	// TODO
+	return nil
+}
+
+// GetOneEvent returns one event by id.
+func (db *DBPostgresEvents) GetOneEvent(id uuid.UUID) (models.Event, error) {
+	// TODO
+	return models.Event{}, nil
+}
+
+// GetAllEvents return all events slice.
+func (db *DBPostgresEvents) GetAllEvents() []models.Event {
+	// TODO
+	return []models.Event{}
+}
