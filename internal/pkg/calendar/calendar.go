@@ -51,7 +51,7 @@ func PrintTestData(events interfaces.DB) {
 	fmt.Printf("%+v\n", events.GetAllEvents())
 	fmt.Println("Edit event ^^^ --------------------------")
 
-	e2, err := events.GetOneEvent(2)
+	e2, err := events.GetOneEvent(event2.ID)
 	if err != nil {
 		log.Println(err)
 	}

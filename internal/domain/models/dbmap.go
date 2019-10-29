@@ -8,6 +8,7 @@ package models
 
 import (
 	"github.com/evakom/calendar/internal/domain/errors"
+	uuid "github.com/satori/go.uuid"
 	"sync"
 	"time"
 )
@@ -15,13 +16,13 @@ import (
 // DBMapEvents is the base struct for using map db.
 type DBMapEvents struct {
 	sync.RWMutex
-	Events map[int]Event
+	Events map[uuid.UUID]Event
 }
 
 // NewMapDB returns new map db struct.
 func NewMapDB() *DBMapEvents {
 	return &DBMapEvents{
-		Events: make(map[int]Event),
+		Events: make(map[uuid.UUID]Event),
 	}
 }
 
@@ -34,7 +35,7 @@ func (db *DBMapEvents) AddEvent(event Event) error {
 }
 
 // DelEvent deletes one event by id.
-func (db *DBMapEvents) DelEvent(id int) error {
+func (db *DBMapEvents) DelEvent(id uuid.UUID) error {
 	if _, ok := db.Events[id]; !ok {
 		return errors.ErrEventNotFound
 		//return fmt.Errorf("event id = %d not found", id)
@@ -61,7 +62,7 @@ func (db *DBMapEvents) EditEvent(event Event) error {
 }
 
 // GetOneEvent returns one event by id.
-func (db *DBMapEvents) GetOneEvent(id int) (Event, error) {
+func (db *DBMapEvents) GetOneEvent(id uuid.UUID) (Event, error) {
 	if _, ok := db.Events[id]; !ok {
 		return Event{}, errors.ErrEventNotFound
 		//return Event{}, fmt.Errorf("event id = %d not found", id)
