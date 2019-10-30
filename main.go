@@ -7,6 +7,7 @@
 package main
 
 import (
+	"flag"
 	"github.com/evakom/calendar/internal/configs"
 	"github.com/evakom/calendar/internal/dbs"
 	"github.com/evakom/calendar/internal/domain/calendar"
@@ -16,16 +17,17 @@ import (
 
 // Constants
 const (
-	EnvCalendarConfigPath  = "CALENDAR_CONFIG_PATH"
-	FileCalendarConfigPath = "./internal/configs/config.yml"
+	EnvCalendarConfigPath = "CALENDAR_CONFIG_PATH"
 )
 
 func main() {
 
-	confPath := os.Getenv(EnvCalendarConfigPath)
+	configFile := flag.String("config", "config.yml", "path to config file")
+	flag.Parse()
 
+	confPath := os.Getenv(EnvCalendarConfigPath)
 	if confPath == "" {
-		confPath = FileCalendarConfigPath
+		confPath = *configFile
 	}
 
 	conf := configs.NewConfig(confPath)

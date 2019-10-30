@@ -1,0 +1,15 @@
+# dbtype - map | postgres
+# default - map
+db_type: map
+
+# path to log file
+# default - current dir
+log_file:
+
+# loglevel - error | debug | warn | info
+# default - error
+log_level:
+
+# ip:port for listening http
+# default - localhost:8080
+http_listen:

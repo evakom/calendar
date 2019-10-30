@@ -15,9 +15,11 @@ import (
 
 // Config is the main config struct.
 type Config struct {
-	confPath string `yaml:"-"`
-	DBType   string `yaml:"db_type"`
-	LogLevel string `yaml:"log_level"`
+	confPath   string `yaml:"-"`
+	DBType     string `yaml:"db_type"`
+	LogFile    string `yaml:"log_file"`
+	LogLevel   string `yaml:"log_level"`
+	ListenHTTP string `yaml:"http_listen"`
 }
 
 // NewConfig creates new config struct.
@@ -38,8 +40,14 @@ func (c *Config) ReadParameters() error {
 	if c.DBType == "" {
 		c.DBType = "map"
 	}
+	if c.LogFile == "" {
+		c.LogFile = "calendar.log"
+	}
 	if c.LogLevel == "" {
-		c.LogLevel = "info"
+		c.LogLevel = "error"
+	}
+	if c.ListenHTTP == "" {
+		c.ListenHTTP = "localhost:8080"
 	}
 	return nil
 }
