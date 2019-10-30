@@ -19,7 +19,8 @@ const dsn = ""
 
 // DBPostgresEvents is the base struct for using map db.
 type DBPostgresEvents struct {
-	db *sqlx.DB
+	db     *sqlx.DB
+	logger *models.Logger
 }
 
 // NewPostgresDB returns new postgres db struct.
@@ -32,7 +33,9 @@ func NewPostgresDB() (*DBPostgresEvents, error) {
 	if err != nil {
 		return &DBPostgresEvents{}, fmt.Errorf("error ping db: %w", err)
 	}
-	return &DBPostgresEvents{db: db}, nil
+	return &DBPostgresEvents{
+		db: db,
+	}, nil
 }
 
 // AddEvent adds event to postgres db.

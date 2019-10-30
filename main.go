@@ -11,6 +11,7 @@ import (
 	"github.com/evakom/calendar/internal/configs"
 	"github.com/evakom/calendar/internal/dbs"
 	"github.com/evakom/calendar/internal/domain/calendar"
+	"github.com/evakom/calendar/internal/domain/models"
 	"log"
 	"os"
 )
@@ -34,6 +35,18 @@ func main() {
 	if err := conf.ReadParameters(); err != nil {
 		log.Fatalln(err)
 	}
+
+	logFile, err := os.OpenFile(conf.LogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatalf("Error open log file '%s', error: %s", conf.LogFile, err)
+	}
+	defer logFile.Close()
+
+	logger := models.NewLogger(conf.LogLevel, logFile)
+	logger.Debug("debug")
+	logger.Info("info")
+	logger.Warn("warning")
+	logger.Error("error")
 
 	db, err := dbs.NewDB(conf.DBType)
 	if db == nil {

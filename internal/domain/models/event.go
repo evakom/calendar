@@ -23,6 +23,7 @@ type Event struct {
 	Body      string
 	Duration  time.Duration
 	Location  string
+	Logger    *Logger
 }
 
 // NewEvent returns new example event.

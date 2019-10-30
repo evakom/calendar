@@ -18,6 +18,7 @@ import (
 type DBMapEvents struct {
 	sync.RWMutex
 	events map[uuid.UUID]models.Event
+	logger *models.Logger
 }
 
 // NewMapDB returns new map db struct.

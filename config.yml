@@ -3,12 +3,12 @@
 db_type: map
 
 # path to log file
-# default - current dir
+# default - calendar.log in the current dir
 log_file:
 
-# loglevel - error | debug | warn | info
+# loglevel - none | error |  warn | info | debug
 # default - error
-log_level:
+log_level: debug
 
 # ip:port for listening http
 # default - localhost:8080

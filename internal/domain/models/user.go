@@ -18,6 +18,7 @@ type User struct {
 	Email    []string
 	Mobile   []string
 	Birthday time.Time
+	Logger   *Logger
 }
 
 // NewUser returns new user struct.

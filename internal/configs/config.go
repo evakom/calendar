@@ -9,22 +9,26 @@ package configs
 
 import (
 	"fmt"
+	"github.com/evakom/calendar/internal/domain/models"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 )
 
 // Config is the main config struct.
 type Config struct {
-	confPath   string `yaml:"-"`
-	DBType     string `yaml:"db_type"`
-	LogFile    string `yaml:"log_file"`
-	LogLevel   string `yaml:"log_level"`
-	ListenHTTP string `yaml:"http_listen"`
+	confPath   string        `yaml:"-"`
+	DBType     string        `yaml:"db_type"`
+	LogFile    string        `yaml:"log_file"`
+	LogLevel   string        `yaml:"log_level"`
+	ListenHTTP string        `yaml:"http_listen"`
+	Logger     models.Logger `yaml:"-"`
 }
 
 // NewConfig creates new config struct.
 func NewConfig(confPath string) *Config {
-	return &Config{confPath: confPath}
+	return &Config{
+		confPath: confPath,
+	}
 }
 
 // ReadParameters reads config from file.
