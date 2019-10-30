@@ -4,11 +4,11 @@ db_type: map
 
 # path to log file
 # default - calendar.log in the current dir
-log_file:
+log_file: #/dev/stdout
 
 # loglevel - none | error |  warn | info | debug
 # default - error
-log_level: debug
+log_level: warn
 
 # ip:port for listening http
 # default - localhost:8080

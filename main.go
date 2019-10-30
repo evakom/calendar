@@ -42,11 +42,7 @@ func main() {
 	}
 	defer logFile.Close()
 
-	logger := models.NewLogger(conf.LogLevel, logFile)
-	logger.Debug("debug")
-	logger.Info("info")
-	logger.Warn("warning")
-	logger.Error("error")
+	models.NewLogger(conf.LogLevel, logFile)
 
 	db, err := dbs.NewDB(conf.DBType)
 	if db == nil {
