@@ -40,8 +40,6 @@ func NewLogger(level string, output io.Writer) Logger {
 		lg.logger.SetLevel(log.InfoLevel)
 	case "warn":
 		lg.logger.SetLevel(log.WarnLevel)
-	//case "error":
-	//	lg.logger.SetLevel(log.ErrorLevel)
 	default:
 		lg.logger.SetLevel(log.ErrorLevel)
 	}
