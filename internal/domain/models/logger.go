@@ -13,9 +13,14 @@ import (
 	"io/ioutil"
 )
 
+// Fields is the log fields type.
+type Fields map[string]interface{}
+
 // Logger is the base struct for all loggers.
 type Logger struct {
-	logger *log.Logger
+	logger     *log.Logger
+	Fields     Fields
+	withFields bool
 }
 
 var lg Logger
@@ -47,26 +52,42 @@ func NewLogger(level string, output io.Writer) {
 
 // Debug writes debug level to output.
 func (l Logger) Debug(format string, args ...interface{}) {
+	if l.withFields {
+		l.logger.WithFields(log.Fields(l.Fields)).Debugf(format, args...)
+		return
+	}
 	l.logger.Debugf(format, args...)
 }
 
 // Info writes info level to output.
 func (l Logger) Info(format string, args ...interface{}) {
+	if l.withFields {
+		l.logger.WithFields(log.Fields(l.Fields)).Infof(format, args...)
+		return
+	}
 	l.logger.Infof(format, args...)
 }
 
 // Warn writes warn level to output.
 func (l Logger) Warn(format string, args ...interface{}) {
+	if l.withFields {
+		l.logger.WithFields(log.Fields(l.Fields)).Warnf(format, args...)
+		return
+	}
 	l.logger.Warnf(format, args...)
 }
 
 // Error writes error level to output.
 func (l Logger) Error(format string, args ...interface{}) {
+	if l.withFields {
+		l.logger.WithFields(log.Fields(l.Fields)).Errorf(format, args...)
+		return
+	}
 	l.logger.Errorf(format, args...)
 }
 
-// WithRequest logs all request fields.
-//func (l Logger) WithRequest(req *http.Request) Logger {
-//  return l.logger.WithField("addr", "qqqqqqq")
-//	return l.logger.WithFields(RequestFields(req))
-//}
+// WithFields support fields.
+func (l Logger) WithFields() Logger {
+	l.withFields = true
+	return l
+}
