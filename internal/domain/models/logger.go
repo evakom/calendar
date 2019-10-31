@@ -46,21 +46,27 @@ func NewLogger(level string, output io.Writer) {
 }
 
 // Debug writes debug level to output.
-func (l Logger) Debug(line string) {
-	l.logger.Debugln(line)
+func (l Logger) Debug(format string, args ...interface{}) {
+	l.logger.Debugf(format, args...)
 }
 
 // Info writes info level to output.
-func (l Logger) Info(line string) {
-	l.logger.Infoln(line)
+func (l Logger) Info(format string, args ...interface{}) {
+	l.logger.Infof(format, args...)
 }
 
 // Warn writes warn level to output.
-func (l Logger) Warn(line string) {
-	l.logger.Warnln(line)
+func (l Logger) Warn(format string, args ...interface{}) {
+	l.logger.Warnf(format, args...)
 }
 
 // Error writes error level to output.
-func (l Logger) Error(line string) {
-	l.logger.Errorln(line)
+func (l Logger) Error(format string, args ...interface{}) {
+	l.logger.Errorf(format, args...)
 }
+
+// WithRequest logs all request fields.
+//func (l Logger) WithRequest(req *http.Request) Logger {
+//  return l.logger.WithField("addr", "qqqqqqq")
+//	return l.logger.WithFields(RequestFields(req))
+//}
