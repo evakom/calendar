@@ -12,4 +12,4 @@ log_level: info
 
 # ip:port for listening http
 # default - localhost:8080
-http_listen:
+http_listen: :8080

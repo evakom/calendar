@@ -17,7 +17,7 @@ type handler struct {
 	logger models.Logger
 }
 
-func newHandler() *handler {
+func newHandlers() *handler {
 	return &handler{
 		logger: models.Logger{}.GetLogger(),
 	}
@@ -26,6 +26,11 @@ func newHandler() *handler {
 func (h handler) prepareRoutes() http.Handler {
 	siteMux := http.NewServeMux()
 	siteMux.HandleFunc("/hello", h.helloHandler)
+	siteMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		h.logger.Fields = requestFields(r)
+		h.logger.WithFields().Info("RESPONSE CODE [%d]", http.StatusNotFound)
+		http.NotFound(w, r)
+	})
 	siteHandler := h.loggerMiddleware(siteMux)
 	return siteHandler
 }
@@ -56,7 +61,7 @@ func requestFields(r *http.Request) models.Fields {
 	fields["host"] = r.Host
 	fields["method"] = r.Method
 	fields["url"] = r.URL.Path
-	//fields["browser"] = r.
+	fields["browser"] = r.Header.Get("User-Agent")
 	fields["remote"] = r.RemoteAddr
 	return fields
 }

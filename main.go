@@ -56,5 +56,5 @@ func main() {
 
 	calendar.PrintTestData(db)
 
-	website.StartWebsite()
+	website.StartWebsite(conf)
 }
