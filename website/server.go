@@ -8,69 +8,38 @@
 package website
 
 import (
+	"context"
 	"fmt"
-	"github.com/evakom/calendar/internal/domain/models"
+	"log"
 	"net/http"
-	"path"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
-type pathResolver struct {
-	handlers map[string]http.HandlerFunc
-	logger   models.Logger
-}
-
-func newPathResolver() *pathResolver {
-	return &pathResolver{
-		handlers: make(map[string]http.HandlerFunc),
-		logger:   models.Logger{}.GetLogger(),
-	}
-}
-
-func (p *pathResolver) Add(path string, handler http.HandlerFunc) {
-	p.handlers[path] = handler
-}
-
-func (p *pathResolver) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	p.logger.Fields = requestFields(r)
-	p.logger.WithFields().Info("REQUEST")
-	check := r.Method + " " + r.URL.Path
-	for pattern, handlerFunc := range p.handlers {
-		ok, err := path.Match(pattern, check)
-		if err != nil {
-			p.logger.WithFields().Error("RESPONSE [%d]", http.StatusInternalServerError)
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-		if ok {
-			handlerFunc(w, r)
-			return
-		}
-	}
-	p.logger.WithFields().Error("RESPONSE [%d]", http.StatusNotFound)
-	http.NotFound(w, r)
-}
+const SERVADDR = ":8080"
 
 // StartWebsite inits routing and starts web listener.
 func StartWebsite() {
-	pr := newPathResolver()
-	pr.Add("GET /hello", helloHandler)
-	http.ListenAndServe(":8080", pr)
-}
 
-func requestFields(r *http.Request) models.Fields {
-	fields := make(models.Fields)
-	fields["host"] = r.Host
-	fields["method"] = r.Method
-	fields["url"] = r.URL
-	//fields["browser"] = r.
-	return fields
-}
-
-func helloHandler(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query()
-	name := query.Get("name")
-	if name == "" {
-		name = "default name"
+	handlers := newHandler()
+	srv := &http.Server{
+		Addr:    SERVADDR,
+		Handler: handlers.prepareRoutes(),
 	}
-	fmt.Fprint(w, "Hello, my name is ", name)
+
+	shutdown := make(chan os.Signal)
+	signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	go func() {
+		log.Println("Signal received:", <-shutdown)
+		if err := srv.Shutdown(ctx); err != nil {
+			log.Println("Error while shutdown server:", err)
+		}
+	}()
+
+	fmt.Println("Starting server at:", SERVADDR)
+	log.Printf("Shutdown server at: %s\n%v", SERVADDR, srv.ListenAndServe())
 }
