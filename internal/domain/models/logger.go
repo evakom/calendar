@@ -21,12 +21,12 @@ type Logger struct {
 var lg Logger
 
 // GetLogger returns global logger.
-func GetLogger() Logger {
+func (l Logger) GetLogger() Logger {
 	return lg
 }
 
-// NewLogger creates new logger instance.
-func NewLogger(level string, output io.Writer) Logger {
+// NewLogger inits logger instance.
+func NewLogger(level string, output io.Writer) {
 	lg = Logger{logger: log.New()}
 	if level == "none" {
 		lg.logger.SetOutput(ioutil.Discard)
@@ -43,7 +43,6 @@ func NewLogger(level string, output io.Writer) Logger {
 	default:
 		lg.logger.SetLevel(log.ErrorLevel)
 	}
-	return lg
 }
 
 // Debug writes debug level to output.

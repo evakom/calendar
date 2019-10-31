@@ -35,7 +35,7 @@ func NewPostgresDB() (*DBPostgresEvents, error) {
 	}
 	dbp := &DBPostgresEvents{
 		db:     db,
-		logger: models.GetLogger(),
+		logger: models.Logger{}.GetLogger(),
 	}
 	dbp.logger.Info("Connected to postgres DB")
 	return dbp, nil

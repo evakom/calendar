@@ -25,7 +25,7 @@ type DBMapEvents struct {
 func NewMapDB() (*DBMapEvents, error) {
 	dbm := &DBMapEvents{
 		events: make(map[uuid.UUID]models.Event),
-		logger: models.GetLogger(),
+		logger: models.Logger{}.GetLogger(),
 	}
 	dbm.logger.Info("New map DB created")
 	return dbm, nil
