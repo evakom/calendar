@@ -27,21 +27,45 @@ func (h handler) prepareRoutes() http.Handler {
 	siteMux := http.NewServeMux()
 	siteMux.HandleFunc("/hello", h.helloHandler)
 	siteMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		h.logger.Fields = requestFields(r)
-		h.logger.WithFields().Info("RESPONSE CODE [%d]", http.StatusNotFound)
+		reqID := getRequestID(r.Context())
+		h.logger.Error("RESPONSE ERROR, ID: %s, RETURN CODE: [%d]", reqID, http.StatusNotFound)
 		http.NotFound(w, r)
 	})
 	siteHandler := h.loggerMiddleware(siteMux)
+	siteHandler = h.panicMiddleware(siteHandler)
+	//siteHandler = h.otherMiddleware(siteHandler)
 	return siteHandler
 }
 
+func (h handler) panicMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h.logger.Debug("Middleware 'panic' PASS")
+		defer func() {
+			if err := recover(); err != nil {
+				h.logger.Error("recovered from panic: %s", err)
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			}
+		}()
+		next.ServeHTTP(w, r)
+	})
+}
+
+//func (h handler) otherMiddleware(next http.Handler) http.Handler {
+//	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//		h.logger.Warn("other Middleware")
+//		next.ServeHTTP(w, r)
+//	})
+//}
+
 func (h handler) loggerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		h.logger.Fields = requestFields(r)
-		h.logger.WithFields().Info("REQUEST")
+		ctx := assignRequestID(r.Context())
+		r = r.WithContext(ctx)
+		h.logger.Fields = requestFields(r, HOSTFIELD, METHODFIELD, URLFIELD, BROWSERFIELD, REMOTEFIELD, QUERYFIELD)
+		h.logger.WithFields().Info("REQUEST START, ID: %s", getRequestID(ctx))
 		start := time.Now()
 		next.ServeHTTP(w, r)
-		h.logger.WithFields().Info("RESPONSE TIME [%s]", time.Since(start))
+		h.logger.Info("REQUEST END, ID: %s, TIME: [%s]", getRequestID(ctx), time.Since(start))
 	})
 }
 
@@ -51,17 +75,9 @@ func (h handler) helloHandler(w http.ResponseWriter, r *http.Request) {
 	if name == "" {
 		name = "default name"
 	}
-	h.logger.Fields = requestFields(r)
-	h.logger.WithFields().Info("RESPONSE CODE [%d]", http.StatusOK)
-	fmt.Fprint(w, "Hello, my name is ", name)
-}
-
-func requestFields(r *http.Request) models.Fields {
-	fields := make(models.Fields)
-	fields["host"] = r.Host
-	fields["method"] = r.Method
-	fields["url"] = r.URL.Path
-	fields["browser"] = r.Header.Get("User-Agent")
-	fields["remote"] = r.RemoteAddr
-	return fields
+	reqID := getRequestID(r.Context())
+	h.logger.Info("RESPONSE, ID: %s, RETURN CODE: [%d]", reqID, http.StatusOK)
+	if _, err := fmt.Fprint(w, "Hello, my name is ", name); err != nil {
+		h.logger.Error("Error write to response writer!")
+	}
 }
