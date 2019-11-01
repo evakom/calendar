@@ -27,9 +27,10 @@ func (h handler) prepareRoutes() http.Handler {
 	siteMux := http.NewServeMux()
 	siteMux.HandleFunc("/hello", h.helloHandler)
 	siteMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		h.logger.Fields = requestFields(r, ID)
-		h.logger.Fields["code"] = http.StatusNotFound
-		h.logger.WithFields().Error("RESPONSE")
+		h.logger.WithFields(models.Fields{
+			"code": http.StatusNotFound,
+			ID:     getRequestID(r.Context()),
+		}).Error("RESPONSE")
 		http.NotFound(w, r)
 	})
 	siteHandler := h.loggerMiddleware(siteMux)
@@ -54,13 +55,16 @@ func (h handler) loggerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := assignRequestID(r.Context())
 		r = r.WithContext(ctx)
-		h.logger.Fields = requestFields(r, ID, HOSTFIELD, METHODFIELD, URLFIELD, BROWSERFIELD, REMOTEFIELD, QUERYFIELD)
-		h.logger.WithFields().Info("REQUEST START")
+		h.logger.WithFields(requestFields(
+			r, ID, HOSTFIELD, METHODFIELD, URLFIELD,
+			BROWSERFIELD, REMOTEFIELD, QUERYFIELD,
+		)).Info("REQUEST START")
 		start := time.Now()
 		next.ServeHTTP(w, r)
-		h.logger.Fields = requestFields(r, ID)
-		h.logger.Fields["response_time"] = time.Since(start)
-		h.logger.WithFields().Info("REQUEST END")
+		h.logger.WithFields(models.Fields{
+			"response_time": time.Since(start),
+			ID:              getRequestID(ctx),
+		}).Info("REQUEST END")
 	})
 }
 
@@ -70,9 +74,10 @@ func (h handler) helloHandler(w http.ResponseWriter, r *http.Request) {
 	if name == "" {
 		name = "default name"
 	}
-	h.logger.Fields = requestFields(r, ID)
-	h.logger.Fields["code"] = http.StatusOK
-	h.logger.WithFields().Info("RESPONSE")
+	h.logger.WithFields(models.Fields{
+		"code": http.StatusOK,
+		ID:     getRequestID(r.Context()),
+	}).Info("RESPONSE")
 	if _, err := fmt.Fprint(w, "Hello, my name is ", name); err != nil {
 		h.logger.Error("Error write to response writer!")
 	}
