@@ -15,6 +15,7 @@ import (
 
 // Constants
 const (
+	ID           = "id"
 	HOSTFIELD    = "host"
 	METHODFIELD  = "method"
 	URLFIELD     = "url"
@@ -31,21 +32,18 @@ func requestFields(r *http.Request, args ...string) models.Fields {
 	fields := make(models.Fields)
 	for _, s := range args {
 		switch s {
+		case ID:
+			fields[ID] = getRequestID(r.Context())
 		case HOSTFIELD:
 			fields[HOSTFIELD] = r.Host
-			fallthrough
 		case METHODFIELD:
 			fields[METHODFIELD] = r.Method
-			fallthrough
 		case URLFIELD:
 			fields[URLFIELD] = r.URL.Path
-			fallthrough
 		case BROWSERFIELD:
 			fields[BROWSERFIELD] = r.Header.Get("User-Agent")
-			fallthrough
 		case REMOTEFIELD:
 			fields[REMOTEFIELD] = r.RemoteAddr
-			fallthrough
 		case QUERYFIELD:
 			fields[QUERYFIELD] = r.URL.RawQuery
 		}
