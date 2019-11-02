@@ -15,6 +15,7 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
 )
 
 const (
@@ -50,7 +51,7 @@ func TestNewEvent(t *testing.T) {
 //}
 
 func TestAddEvent(t *testing.T) {
-	events := createNewDB()
+	events := getDB()
 	e := models.NewEvent()
 	e.Subject = "222222222222222222222"
 	e.Body = "3333333333333333333"
@@ -70,7 +71,7 @@ func TestAddEvent(t *testing.T) {
 }
 
 func TestGetEvent(t *testing.T) {
-	events := createNewDB()
+	events := getDB()
 	e1 := models.NewEvent()
 	_ = events.AddEvent(e1)
 	e2 := models.NewEvent()
@@ -86,9 +87,11 @@ func TestGetEvent(t *testing.T) {
 }
 
 func TestEditEvent(t *testing.T) {
-	events := createNewDB()
+	events := getDB()
 	e1 := models.NewEvent()
 	_ = events.AddEvent(e1)
+
+	time.Sleep(time.Millisecond) // fix for windows
 
 	e2, _ := events.GetOneEvent(e1.ID)
 	e2.Subject = "11111111111111111"
@@ -114,7 +117,7 @@ func TestEditEvent(t *testing.T) {
 }
 
 func TestDelEvent(t *testing.T) {
-	events := createNewDB()
+	events := getDB()
 	e := models.NewEvent()
 	_ = events.AddEvent(e)
 	if err := events.DelEvent(e.ID); err != nil {
@@ -130,7 +133,7 @@ func TestDelEvent(t *testing.T) {
 }
 
 func TestGetAllEvents(t *testing.T) {
-	events := createNewDB()
+	events := getDB()
 	e1 := models.NewEvent()
 	_ = events.AddEvent(e1)
 	e2 := models.NewEvent()
@@ -143,7 +146,7 @@ func TestGetAllEvents(t *testing.T) {
 	}
 }
 
-func createNewDB() interfaces.DB {
+func getDB() interfaces.DB {
 	confPath := os.Getenv(EnvCalendarConfigPath)
 	if confPath == "" {
 		confPath = FileCalendarConfigPath
