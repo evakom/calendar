@@ -148,8 +148,8 @@ func createNewDB() interfaces.DB {
 	if confPath == "" {
 		confPath = FileCalendarConfigPath
 	}
-	conf := configs.NewConfig(confPath)
-	if err := conf.ReadParameters(); err != nil {
+	conf, err := configs.NewConfig(confPath)
+	if err != nil {
 		log.Fatalln(err)
 	}
 	models.NewLogger("none", nil)
