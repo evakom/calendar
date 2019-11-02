@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"github.com/evakom/calendar/internal/domain/calendar"
 	"github.com/evakom/calendar/internal/domain/models"
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"net/http"
 	"time"
 )

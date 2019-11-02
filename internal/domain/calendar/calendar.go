@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"github.com/evakom/calendar/internal/domain/interfaces"
 	"github.com/evakom/calendar/internal/domain/models"
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 )
 
 // Calendar is the main calendar struct.
