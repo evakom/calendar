@@ -75,6 +75,7 @@ func (h handler) loggerMiddleware(next http.Handler) http.Handler {
 func (h handler) helloHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	name := query.Get("name")
+	userID := query.Get("userid")
 	if name == "" {
 		name = "default name"
 	}
@@ -83,10 +84,15 @@ func (h handler) helloHandler(w http.ResponseWriter, r *http.Request) {
 		ID:     getRequestID(r.Context()),
 	}).Info("RESPONSE")
 
+	event := models.NewEvent()
+	event.Location = "qqqqqqqqqqqqqqqqqqqqqq"
+	event.UserID = uuid.New()
+	_ = h.calendar.AddEvent(event)
+
 	s := "Hello, my name is " + name + "\n\n"
 
-	for _, e := range h.calendar.GetAllEvents(uuid.Nil) {
-		s += e.String() + "\n"
+	for _, e := range h.calendar.GetAllEvents(userID) {
+		s += e.StringEr() + "\n"
 	}
 
 	if _, err := io.WriteString(w, s); err != nil {
