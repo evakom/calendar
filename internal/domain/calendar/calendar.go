@@ -8,7 +8,6 @@
 package calendar
 
 import (
-	"fmt"
 	"github.com/evakom/calendar/internal/domain/interfaces"
 	"github.com/evakom/calendar/internal/domain/models"
 	"github.com/google/uuid"
@@ -29,7 +28,7 @@ func NewCalendar(db interfaces.DB) Calendar {
 }
 
 // GetAllEvents returns all calendar events for given user
-func (c Calendar) GetAllEvents(userID uuid.UUID) string {
+func (c Calendar) GetAllEvents(userID uuid.UUID) []models.Event {
 
 	event1 := models.NewEvent()
 	event1.Location = "qqqqqqqqqqqqqqqqqqqqqq"
@@ -40,23 +39,9 @@ func (c Calendar) GetAllEvents(userID uuid.UUID) string {
 	event2.Body = "3333333333333333333"
 	_ = c.db.AddEvent(event2)
 
-	return fmt.Sprint(c.db.GetAllEvents())
+	return c.db.GetAllEvents()
 }
 
-// PrintTestData test events.
-//func (c Calendar) PrintTestData() {
-//	event1 := models.NewEvent()
-//
-//	event1.Location = "qqqqqqqqqqqqqqqqqqqqqq"
-//	_ = c.db.AddEvent(event1)
-//
-//	event2 := models.NewEvent()
-//	event2.Subject = "222222222222222222222"
-//	event2.Body = "3333333333333333333"
-//	_ = c.db.AddEvent(event2)
-//
-//	c.logger.Info("%+v\n", c.db.GetAllEvents())
-//
 //	if err := c.db.DelEvent(event1.ID); err != nil {
 //		c.logger.Error(err.Error())
 //	}
@@ -76,4 +61,3 @@ func (c Calendar) GetAllEvents(userID uuid.UUID) string {
 //	}
 //
 //	c.logger.Info("%+v\n", e2)
-//}

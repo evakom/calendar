@@ -83,7 +83,11 @@ func (h handler) helloHandler(w http.ResponseWriter, r *http.Request) {
 		ID:     getRequestID(r.Context()),
 	}).Info("RESPONSE")
 
-	s := "Hello, my name is " + name + "\n\n" + h.calendar.GetAllEvents(uuid.Nil)
+	s := "Hello, my name is " + name + "\n\n"
+
+	for _, e := range h.calendar.GetAllEvents(uuid.Nil) {
+		s += e.String() + "\n"
+	}
 
 	if _, err := io.WriteString(w, s); err != nil {
 		h.logger.Error("Error write to response writer!")
