@@ -19,4 +19,5 @@ type DB interface {
 	DelEvent(id uuid.UUID) error
 	GetOneEvent(id uuid.UUID) (models.Event, error)
 	GetAllEvents() []models.Event
+	CleanEventsDB() error
 }

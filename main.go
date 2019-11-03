@@ -8,65 +8,23 @@ package main
 
 import (
 	"flag"
-	"github.com/evakom/calendar/internal/configs"
-	"github.com/evakom/calendar/internal/dbs"
 	"github.com/evakom/calendar/internal/domain/calendar"
-	"github.com/evakom/calendar/internal/domain/interfaces"
-	"github.com/evakom/calendar/internal/domain/models"
+	"github.com/evakom/calendar/tools"
 	"github.com/evakom/calendar/website"
-	"log"
-	"os"
-)
-
-// Constants
-const (
-	EnvCalendarConfigPath = "CALENDAR_CONFIG_PATH"
 )
 
 func main() {
+	configFile := flag.String("config", "config.yml", "path to config file")
+	flag.Parse()
 
-	conf := initConfig()
+	conf := tools.InitConfig(*configFile)
 
-	logFile := initLogger(conf)
+	logFile := tools.InitLogger(conf)
 	defer logFile.Close()
 
-	db := initDB(conf)
+	db := tools.InitDB(conf.DBType)
 
 	cal := calendar.NewCalendar(db)
 
 	website.StartWebsite(conf.ListenHTTP, cal)
-}
-
-func initConfig() configs.Config {
-	configFile := flag.String("config", "config.yml", "path to config file")
-	flag.Parse()
-	confPath := os.Getenv(EnvCalendarConfigPath)
-	if confPath == "" {
-		confPath = *configFile
-	}
-	conf, err := configs.NewConfig(confPath)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	return conf
-}
-
-func initLogger(conf configs.Config) *os.File {
-	logFile, err := os.OpenFile(conf.LogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		log.Fatalf("Error open log file '%s', error: %s", conf.LogFile, err)
-	}
-	models.NewLogger(conf.LogLevel, logFile)
-	return logFile
-}
-
-func initDB(conf configs.Config) interfaces.DB {
-	db, err := dbs.NewDB(conf.DBType)
-	if db == nil {
-		log.Fatalf("unsupported DB type: %s\n", conf.DBType)
-	}
-	if err != nil {
-		log.Fatalf("Open DB: %s, error: %s \n", conf.DBType, err)
-	}
-	return db
 }

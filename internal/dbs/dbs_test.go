@@ -19,9 +19,30 @@ import (
 )
 
 const (
-	EnvCalendarConfigPath  = "CALENDAR_CONFIG_PATH"
-	FileCalendarConfigPath = "../../config.yml"
+	envConfigPath  = "CALENDAR_CONFIG_PATH"
+	fileConfigPath = "../../config.yml"
 )
+
+var events interfaces.DB
+
+func init() {
+	confPath := os.Getenv(envConfigPath)
+	if confPath == "" {
+		confPath = fileConfigPath
+	}
+	conf, err := configs.NewConfig(confPath)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	models.NewLogger("none", nil)
+	events, err = NewDB(conf.DBType)
+	if events == nil {
+		log.Fatalf("unsupported DB type: %s\n", conf.DBType)
+	}
+	if err != nil {
+		log.Fatalf("Open DB: %s, error: %s \n", conf.DBType, err)
+	}
+}
 
 func TestNewEvent(t *testing.T) {
 	e1 := models.NewEvent().ID
@@ -51,7 +72,7 @@ func TestNewEvent(t *testing.T) {
 //}
 
 func TestAddEvent(t *testing.T) {
-	events := getDB()
+	//events := getDB()
 	e := models.NewEvent()
 	e.Subject = "222222222222222222222"
 	e.Body = "3333333333333333333"
@@ -71,7 +92,7 @@ func TestAddEvent(t *testing.T) {
 }
 
 func TestGetEvent(t *testing.T) {
-	events := getDB()
+	//events := getDB()
 	e1 := models.NewEvent()
 	_ = events.AddEvent(e1)
 	e2 := models.NewEvent()
@@ -87,7 +108,7 @@ func TestGetEvent(t *testing.T) {
 }
 
 func TestEditEvent(t *testing.T) {
-	events := getDB()
+	//events := getDB()
 	e1 := models.NewEvent()
 	_ = events.AddEvent(e1)
 
@@ -117,7 +138,7 @@ func TestEditEvent(t *testing.T) {
 }
 
 func TestDelEvent(t *testing.T) {
-	events := getDB()
+	//events := getDB()
 	e := models.NewEvent()
 	_ = events.AddEvent(e)
 	if err := events.DelEvent(e.ID); err != nil {
@@ -133,7 +154,7 @@ func TestDelEvent(t *testing.T) {
 }
 
 func TestGetAllEvents(t *testing.T) {
-	events := getDB()
+	_ = events.CleanEventsDB()
 	e1 := models.NewEvent()
 	_ = events.AddEvent(e1)
 	e2 := models.NewEvent()
@@ -144,24 +165,4 @@ func TestGetAllEvents(t *testing.T) {
 	if l != 1 {
 		t.Errorf("After getting all events length slice != 1, actual length = %d", l)
 	}
-}
-
-func getDB() interfaces.DB {
-	confPath := os.Getenv(EnvCalendarConfigPath)
-	if confPath == "" {
-		confPath = FileCalendarConfigPath
-	}
-	conf, err := configs.NewConfig(confPath)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	models.NewLogger("none", nil)
-	db, err := NewDB(conf.DBType)
-	if db == nil {
-		log.Fatalf("unsupported DB type: %s\n", conf.DBType)
-	}
-	if err != nil {
-		log.Fatalf("Open DB: %s, error: %s \n", conf.DBType, err)
-	}
-	return db
 }

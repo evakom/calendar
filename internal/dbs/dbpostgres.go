@@ -87,3 +87,10 @@ func (db *DBPostgresEvents) GetAllEvents() []models.Event {
 	db.logger.Info("All events got")
 	return []models.Event{}
 }
+
+// CleanEventsDB cleans db and deletes all events in the db (no restoring!).
+func (db *DBPostgresEvents) CleanEventsDB() error {
+	// TODO
+	db.logger.Info("DB cleaned, all events deleted")
+	return nil
+}

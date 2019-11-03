@@ -7,10 +7,10 @@
 package website
 
 import (
-	"fmt"
 	"github.com/evakom/calendar/internal/domain/calendar"
 	"github.com/evakom/calendar/internal/domain/models"
 	"github.com/google/uuid"
+	"io"
 	"net/http"
 	"time"
 )
@@ -85,7 +85,7 @@ func (h handler) helloHandler(w http.ResponseWriter, r *http.Request) {
 
 	s := "Hello, my name is " + name + "\n\n" + h.calendar.GetAllEvents(uuid.Nil)
 
-	if _, err := fmt.Fprint(w, s); err != nil {
+	if _, err := io.WriteString(w, s); err != nil {
 		h.logger.Error("Error write to response writer!")
 	}
 }

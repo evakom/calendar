@@ -106,3 +106,12 @@ func (db *DBMapEvents) GetAllEvents() []models.Event {
 	db.logger.Info("All events got")
 	return events
 }
+
+// CleanEventsDB cleans db and deletes all events in the db (no restoring!).
+func (db *DBMapEvents) CleanEventsDB() error {
+	db.Lock()
+	defer db.Unlock()
+	db.events = make(map[uuid.UUID]models.Event)
+	db.logger.Info("DB cleaned, all events deleted")
+	return nil
+}
