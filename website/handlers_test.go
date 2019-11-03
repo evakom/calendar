@@ -12,6 +12,7 @@ import (
 	"github.com/evakom/calendar/tools"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -29,7 +30,13 @@ func init() {
 
 func TestGetHello(t *testing.T) {
 
-	req := httptest.NewRequest("GET", "/health-check", nil)
+	req := httptest.NewRequest("GET", "/", nil)
+
+	query := req.URL.Query()
+	query.Add("name", "Klim")
+	query.Add("qqq", "www") // fake
+	req.URL.RawQuery = query.Encode()
+
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(handlers.helloHandler)
 	handler.ServeHTTP(rr, req)
@@ -40,5 +47,10 @@ func TestGetHello(t *testing.T) {
 		return
 	}
 
-	t.Log("PASS - HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
+	expected := "Hello, my name is Klim"
+	if !strings.Contains(rr.Body.String(), expected) {
+		t.Errorf("Hello handler returned unexpected body:\ngot - %v\nwant - %v",
+			rr.Body.String(), expected)
+		return
+	}
 }

@@ -29,7 +29,7 @@ func newHandlers(calendar calendar.Calendar) *handler {
 
 func (h handler) prepareRoutes() http.Handler {
 	siteMux := http.NewServeMux()
-	siteMux.HandleFunc("/hello", h.helloHandler)
+	siteMux.HandleFunc("/hello/", h.helloHandler)
 	siteMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		h.logger.WithFields(models.Fields{
 			"code": http.StatusNotFound,
