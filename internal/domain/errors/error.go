@@ -17,9 +17,10 @@ func (e EventError) Error() string {
 
 // Errors
 var (
-//ErrEventNotFound       = errors.New("event not found")
-//ErrEventAlreadyDeleted = errors.New("event already deleted")
-//ErrOverlapping       = EventError("another event exists for this date")
-//ErrIncorrectDuration = EventError("duration is incorrect")
-//ErrDateBusy = EventError("The date already busy")
+	//ErrEventNotFound       = errors.New("event not found")
+	//ErrEventAlreadyDeleted = errors.New("event already deleted")
+	//ErrOverlapping       = EventError("another event exists for this date")
+	//ErrIncorrectDuration = EventError("duration is incorrect")
+	//ErrDateBusy  = EventError("The date already busy")
+	ErrBadUserID = EventError("Illegal user ID")
 )

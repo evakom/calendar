@@ -91,7 +91,8 @@ func (h handler) helloHandler(w http.ResponseWriter, r *http.Request) {
 
 	s := "Hello, my name is " + name + "\n\n"
 
-	for _, e := range h.calendar.GetAllEvents(userID) {
+	events, _ := h.calendar.GetAllEventsByUserID(userID)
+	for _, e := range events {
 		s += e.StringEr() + "\n"
 	}
 
