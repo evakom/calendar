@@ -31,13 +31,14 @@ func NewCalendar(db interfaces.DB) Calendar {
 // AddEvent adds new event for given user.
 func (c Calendar) AddEvent(event models.Event) error {
 	c.logger.WithFields(models.Fields{
-		"id": event.ID.String(),
+		"id":     event.ID.String(),
+		"userID": event.UserID.String(),
 	}).Info("Request add event into calendar")
 	c.logger.Debug("Requested event body for adding into calendar: %+v", event)
 	return c.db.AddEventDB(event)
 }
 
-// GetAllEventsFilter returns all calendar events for given filter.
+// GetAllEventsFilter returns all calendar events with given filter.
 func (c Calendar) GetAllEventsFilter(filter models.Event) ([]models.Event, error) {
 	result := make([]models.Event, 0)
 	if filter.ID != uuid.Nil {
@@ -51,22 +52,22 @@ func (c Calendar) GetAllEventsFilter(filter models.Event) ([]models.Event, error
 		result = append(result, e)
 		c.logger.WithFields(models.Fields{
 			"id": filter.ID,
-		}).Info("Returned filtered event")
+		}).Info("Returned filtered event by eventID")
 		return result, nil
 	}
 	if filter.UserID != uuid.Nil {
-		//result := c.db.GetAllEventsFilterDB(filter)
+		events := c.db.GetAllEventsDB()
+		for _, e := range events {
+			if e.UserID == filter.UserID {
+				result = append(result, e)
+			}
+		}
+		c.logger.WithFields(models.Fields{
+			"userID": filter.UserID,
+		}).Info("Returned filtered events by userID")
+		return result, nil
 	}
 
+	// return not found at all filter
 	return nil, nil
 }
-
-// GetAllEventsByUserID returns all calendar events for given user.
-//func (c Calendar) GetAllEventsByUserID(userID string) ([]models.Event, error) {
-//	uid, err := uuid.Parse(userID)
-//	if err != nil {
-//		return nil, errors.ErrBadUserID
-//	}
-//	c.logger.Info("Requested events for user: ", userID)
-//	return c.GetAllEventsFilterDB(models.Event{UserID: uid})
-//}
