@@ -22,5 +22,6 @@ var (
 	//ErrOverlapping       = EventError("another event exists for this date")
 	//ErrIncorrectDuration = EventError("duration is incorrect")
 	//ErrDateBusy  = EventError("The date already busy")
-	ErrBadUserID = EventError("Illegal user ID")
+	//ErrBadUUID = EventError("Illegal object ID")
+	ErrEventNotFound = EventError("Event not found")
 )
