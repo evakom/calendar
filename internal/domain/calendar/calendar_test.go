@@ -35,3 +35,7 @@ func TestAddEvent(t *testing.T) {
 		t.Errorf("Adding event with same id should return error but returns no error")
 	}
 }
+
+func TestGetAllEventsFilter(t *testing.T) {
+
+}
