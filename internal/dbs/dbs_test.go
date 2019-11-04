@@ -71,7 +71,7 @@ func TestNewEvent(t *testing.T) {
 //	}
 //}
 
-func TestAddEvent(t *testing.T) {
+func TestAddEventDB(t *testing.T) {
 	e := models.NewEvent()
 	e.Subject = "222222222222222222222"
 	e.Body = "3333333333333333333"
@@ -90,7 +90,7 @@ func TestAddEvent(t *testing.T) {
 	}
 }
 
-func TestGetEvent(t *testing.T) {
+func TestGetEventDB(t *testing.T) {
 	e1 := models.NewEvent()
 	_ = events.AddEventDB(e1)
 	e2 := models.NewEvent()
@@ -105,7 +105,7 @@ func TestGetEvent(t *testing.T) {
 	}
 }
 
-func TestEditEvent(t *testing.T) {
+func TestEditEventDB(t *testing.T) {
 	e1 := models.NewEvent()
 	_ = events.AddEventDB(e1)
 
@@ -134,7 +134,7 @@ func TestEditEvent(t *testing.T) {
 	}
 }
 
-func TestDelEvent(t *testing.T) {
+func TestDelEventDB(t *testing.T) {
 	e := models.NewEvent()
 	_ = events.AddEventDB(e)
 	if err := events.DelEventDB(e.ID); err != nil {
@@ -149,7 +149,7 @@ func TestDelEvent(t *testing.T) {
 	}
 }
 
-func TestGetAllEvents(t *testing.T) {
+func TestGetAllEventsDB(t *testing.T) {
 	_ = events.CleanEventsDB()
 	e1 := models.NewEvent()
 	_ = events.AddEventDB(e1)

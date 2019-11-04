@@ -68,6 +68,6 @@ func (c Calendar) GetAllEventsFilter(filter models.Event) ([]models.Event, error
 		return result, nil
 	}
 
-	// return not found at all filter
+	c.logger.Warn("No returned events by filter")
 	return nil, nil
 }
