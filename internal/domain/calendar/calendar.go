@@ -48,7 +48,7 @@ func (c Calendar) GetAllEventsFilter(filter models.Event) ([]models.Event, error
 			c.logger.WithFields(models.Fields{
 				"id": filter.ID,
 			}).Error("Filtered error: %s", err.Error())
-			return nil, errors.ErrEventNotFound
+			return result, errors.ErrEventNotFound
 		}
 		result = append(result, e)
 		c.logger.WithFields(models.Fields{

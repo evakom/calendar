@@ -17,10 +17,10 @@ func (e EventError) Error() string {
 
 // Errors
 var (
-	//ErrOverlapping       = EventError("another event exists for this date")
-	//ErrIncorrectDuration = EventError("duration is incorrect")
-	//ErrDateBusy  = EventError("The date already busy")
 	ErrEventNotFound       = EventError("Event not found")
 	ErrEventAlreadyExists  = EventError("Event already exists")
 	ErrEventAlreadyDeleted = EventError("Event already deleted")
+	//ErrOverlapping       = EventError("another event exists for this date")
+	//ErrIncorrectDuration = EventError("duration is incorrect")
+	//ErrDateBusy  = EventError("The date already busy")
 )
