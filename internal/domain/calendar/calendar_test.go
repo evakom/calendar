@@ -39,7 +39,7 @@ func TestAddEvent(t *testing.T) {
 	}
 }
 
-func TestGetAllEventsFilterEventID(t *testing.T) {
+func TestGetAllEventsFilter_EventID(t *testing.T) {
 	e1 := models.NewEvent()
 	_ = cal.AddEvent(e1)
 	e2 := models.NewEvent()
@@ -61,7 +61,7 @@ func TestGetAllEventsFilterEventID(t *testing.T) {
 	}
 }
 
-func TestGetAllEventsFilterUserID(t *testing.T) {
+func TestGetAllEventsFilter_UserID(t *testing.T) {
 	e1 := models.NewEvent()
 	_ = cal.AddEvent(e1)
 	e2 := models.NewEvent()
@@ -87,7 +87,7 @@ func TestGetAllEventsFilterUserID(t *testing.T) {
 	}
 	filter = models.Event{}
 	events, err = cal.GetAllEventsFilter(filter)
-	if events != nil || err != nil {
+	if len(events) != 0 || err != nil {
 		t.Errorf("Null filter must return nil events but returned:\n"+
 			"events=%v, err=%s", events, err)
 	}
