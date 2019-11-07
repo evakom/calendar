@@ -39,7 +39,7 @@ func TestAddEvent(t *testing.T) {
 	}
 }
 
-func TestGetAllEventsFilterEventID(t *testing.T) {
+func TestGetAllEventsFilter_EventID(t *testing.T) {
 	e1 := models.NewEvent()
 	_ = cal.AddEvent(e1)
 	e2 := models.NewEvent()
@@ -61,7 +61,7 @@ func TestGetAllEventsFilterEventID(t *testing.T) {
 	}
 }
 
-func TestGetAllEventsFilterUserID(t *testing.T) {
+func TestGetAllEventsFilter_UserID(t *testing.T) {
 	e1 := models.NewEvent()
 	_ = cal.AddEvent(e1)
 	e2 := models.NewEvent()
