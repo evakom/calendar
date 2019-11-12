@@ -9,6 +9,7 @@ package dbs
 import (
 	"github.com/evakom/calendar/internal/domain/errors"
 	"github.com/evakom/calendar/internal/domain/models"
+	"github.com/evakom/calendar/internal/loggers"
 	"github.com/google/uuid"
 	"sync"
 	"time"
@@ -18,14 +19,14 @@ import (
 type DBMapEvents struct {
 	sync.RWMutex
 	events map[uuid.UUID]models.Event
-	logger models.Logger
+	logger loggers.Logger
 }
 
 // NewMapDB returns new map db struct.
 func NewMapDB() (*DBMapEvents, error) {
 	dbm := &DBMapEvents{
 		events: make(map[uuid.UUID]models.Event),
-		logger: models.Logger{}.GetLogger(),
+		logger: loggers.Logger{}.GetLogger(),
 	}
 	dbm.logger.Info("New map DB created")
 	return dbm, nil
@@ -39,7 +40,7 @@ func (db *DBMapEvents) AddEventDB(event models.Event) error {
 		return errors.ErrEventAlreadyExists
 	}
 	db.events[event.ID] = event
-	db.logger.WithFields(models.Fields{
+	db.logger.WithFields(loggers.Fields{
 		"id": event.ID.String(),
 	}).Info("Event added into map DB")
 	db.logger.Debug("Event body added into map DB: %+v", event)
@@ -56,7 +57,7 @@ func (db *DBMapEvents) DelEventDB(id uuid.UUID) error {
 	e := db.events[id]
 	e.DeletedAt = time.Now()
 	db.events[id] = e
-	db.logger.WithFields(models.Fields{
+	db.logger.WithFields(loggers.Fields{
 		"id": id.String(),
 	}).Info("Event deleted from map DB")
 	db.logger.Debug("Event body deleted from map DB: %+v", e)
@@ -72,7 +73,7 @@ func (db *DBMapEvents) EditEventDB(event models.Event) error {
 	defer db.Unlock()
 	event.UpdatedAt = time.Now()
 	db.events[event.ID] = event
-	db.logger.WithFields(models.Fields{
+	db.logger.WithFields(loggers.Fields{
 		"id": event.ID.String(),
 	}).Info("Event updated in map DB")
 	db.logger.Debug("Event body updated in map DB: %+v", event)
@@ -87,7 +88,7 @@ func (db *DBMapEvents) GetOneEventDB(id uuid.UUID) (models.Event, error) {
 	if !db.events[id].DeletedAt.IsZero() {
 		return models.Event{}, errors.ErrEventAlreadyDeleted
 	}
-	db.logger.WithFields(models.Fields{
+	db.logger.WithFields(loggers.Fields{
 		"id": id.String(),
 	}).Info("Event got from map DB")
 	db.logger.Debug("Event body got from map DB: %+v", db.events[id])

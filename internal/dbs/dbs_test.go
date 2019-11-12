@@ -11,6 +11,7 @@ import (
 	"github.com/evakom/calendar/internal/domain/errors"
 	"github.com/evakom/calendar/internal/domain/interfaces"
 	"github.com/evakom/calendar/internal/domain/models"
+	"github.com/evakom/calendar/internal/loggers"
 	"github.com/google/uuid"
 	"log"
 	"os"
@@ -35,7 +36,7 @@ func init() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	models.NewLogger("none", nil)
+	loggers.NewLogger("none", nil)
 	events, err = NewDB(conf.DBType)
 	if events == nil {
 		log.Fatalf("unsupported DB type: %s\n", conf.DBType)

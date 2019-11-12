@@ -9,6 +9,7 @@ package calendar
 import (
 	"github.com/evakom/calendar/internal/domain/errors"
 	"github.com/evakom/calendar/internal/domain/models"
+	"github.com/evakom/calendar/internal/loggers"
 	"github.com/evakom/calendar/tools"
 	"github.com/google/uuid"
 	"testing"
@@ -20,7 +21,7 @@ var cal Calendar
 
 func init() {
 	conf := tools.InitConfig(fileConfigPath)
-	models.NewLogger("none", nil)
+	loggers.NewLogger("none", nil)
 	//models.NewLogger("debug", os.Stdout)
 	db := tools.InitDB(conf.DBType)
 	cal = NewCalendar(db)
