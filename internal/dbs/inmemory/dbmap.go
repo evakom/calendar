@@ -4,7 +4,8 @@
  * Copyright (c) 2019 - Eugene Klimov
  */
 
-package dbs
+// Package inmemory implements memory DB interface.
+package inmemory
 
 import (
 	"github.com/evakom/calendar/internal/domain/errors"

@@ -8,6 +8,8 @@
 package dbs
 
 import (
+	"github.com/evakom/calendar/internal/dbs/inmemory"
+	"github.com/evakom/calendar/internal/dbs/postgres"
 	"github.com/evakom/calendar/internal/domain/interfaces/storage"
 )
 
@@ -21,9 +23,9 @@ const (
 func NewDB(dbType string) (storage.DB, error) {
 	switch dbType {
 	case MapDBType:
-		return NewMapDB()
+		return inmemory.NewMapDB()
 	case PostgresDBType:
-		return NewPostgresDB()
+		return postgres.NewPostgresDB()
 	}
 	return nil, nil
 }

@@ -4,7 +4,8 @@
  * Copyright (c) 2019 - Eugene Klimov
  */
 
-package dbs
+// Package postgres implements postgres interface.
+package postgres
 
 import (
 	"fmt"
