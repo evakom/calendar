@@ -10,7 +10,7 @@ package tools
 import (
 	"github.com/evakom/calendar/internal/configs"
 	"github.com/evakom/calendar/internal/dbs"
-	"github.com/evakom/calendar/internal/domain/interfaces"
+	"github.com/evakom/calendar/internal/domain/interfaces/storage"
 	"github.com/evakom/calendar/internal/loggers"
 	"log"
 	"os"
@@ -45,7 +45,7 @@ func InitLogger(conf configs.Config) *os.File {
 }
 
 // InitDB inits db interface.
-func InitDB(dbType string) interfaces.DB {
+func InitDB(dbType string) storage.DB {
 	db, err := dbs.NewDB(dbType)
 	if db == nil {
 		log.Fatalf("unsupported DB type: %s\n", dbType)

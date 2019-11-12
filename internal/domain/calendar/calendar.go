@@ -9,7 +9,7 @@ package calendar
 
 import (
 	"github.com/evakom/calendar/internal/domain/errors"
-	"github.com/evakom/calendar/internal/domain/interfaces"
+	"github.com/evakom/calendar/internal/domain/interfaces/storage"
 	"github.com/evakom/calendar/internal/domain/models"
 	"github.com/evakom/calendar/internal/loggers"
 	"github.com/google/uuid"
@@ -17,12 +17,12 @@ import (
 
 // Calendar is the main calendar struct.
 type Calendar struct {
-	db     interfaces.DB
+	db     storage.DB
 	logger loggers.Logger
 }
 
 // NewCalendar inits main calendar fields.
-func NewCalendar(db interfaces.DB) Calendar {
+func NewCalendar(db storage.DB) Calendar {
 	return Calendar{
 		db:     db,
 		logger: loggers.Logger{}.GetLogger(),

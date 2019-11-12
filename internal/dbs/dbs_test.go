@@ -9,7 +9,7 @@ package dbs
 import (
 	"github.com/evakom/calendar/internal/configs"
 	"github.com/evakom/calendar/internal/domain/errors"
-	"github.com/evakom/calendar/internal/domain/interfaces"
+	"github.com/evakom/calendar/internal/domain/interfaces/storage"
 	"github.com/evakom/calendar/internal/domain/models"
 	"github.com/evakom/calendar/internal/loggers"
 	"github.com/google/uuid"
@@ -25,7 +25,7 @@ const (
 	fileConfigPath = "../../config.yml"
 )
 
-var events interfaces.DB
+var events storage.DB
 
 func init() {
 	confPath := os.Getenv(envConfigPath)

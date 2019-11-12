@@ -8,7 +8,7 @@
 package dbs
 
 import (
-	"github.com/evakom/calendar/internal/domain/interfaces"
+	"github.com/evakom/calendar/internal/domain/interfaces/storage"
 )
 
 // Constants
@@ -18,7 +18,7 @@ const (
 )
 
 // NewDB returns DB by db type
-func NewDB(dbType string) (interfaces.DB, error) {
+func NewDB(dbType string) (storage.DB, error) {
 	switch dbType {
 	case MapDBType:
 		return NewMapDB()
