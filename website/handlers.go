@@ -17,12 +17,14 @@ import (
 )
 
 type handler struct {
+	handlers map[string]http.HandlerFunc
 	calendar calendar.Calendar
 	logger   loggers.Logger
 }
 
 func newHandlers(calendar calendar.Calendar) *handler {
 	return &handler{
+		handlers: make(map[string]http.HandlerFunc),
 		calendar: calendar,
 		logger:   loggers.Logger{}.GetLogger(),
 	}
@@ -61,4 +63,8 @@ func (h handler) helloHandler(w http.ResponseWriter, r *http.Request) {
 	if _, err := io.WriteString(w, s); err != nil {
 		h.logger.Error("Error write to response writer!")
 	}
+}
+
+func (h handler) createEventHandler(w http.ResponseWriter, r *http.Request) {
+	io.WriteString(w, "create")
 }
