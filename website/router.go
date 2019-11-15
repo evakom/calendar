@@ -15,11 +15,16 @@ import (
 
 func (h handler) prepareRoutes() http.Handler {
 	siteMux := http.NewServeMux()
-	h.addPath("GET /hello/*", h.helloHandler)
-	h.addPath("POST /create_event", h.createEventHandler)
-	// path must be last
+
+	h.addPath("GET /hello/*", h.hello)
+	h.addPath("POST /create_event", h.createEvent)
+	h.addPath("PUT /update_event", h.updateEvent)
+	h.addPath("DELETE /delete_event", h.deleteEvent)
+	h.addPath("GET /events_for_day", h.eventsForDay)
+	h.addPath("GET /events_for_week", h.eventsForWeek)
+	h.addPath("GET /events_for_month", h.eventsForMonth)
+
 	siteHandler := h.pathMiddleware(siteMux)
-	// next middleware
 	siteHandler = h.loggerMiddleware(siteHandler)
 	siteHandler = h.panicMiddleware(siteHandler)
 	return siteHandler
@@ -37,6 +42,7 @@ func (h handler) pathMiddleware(next http.Handler) http.Handler {
 				handlerFunc(w, r)
 				return
 			} else if err != nil {
+				h.logger.Error("error match router path: %s", err)
 				http.Error(w, http.StatusText(http.StatusInternalServerError),
 					http.StatusInternalServerError)
 			}
