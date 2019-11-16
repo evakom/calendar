@@ -28,11 +28,11 @@ type Error struct {
 
 func newError() Error {
 	return Error{
-		logger: loggers.Logger{}.GetLogger(),
+		logger: loggers.GetLogger(),
 	}
 }
 
-func (e Error) sendError(w http.ResponseWriter, code int, err error, description string) {
+func (e Error) send(w http.ResponseWriter, code int, err error, description string) {
 	if err == nil {
 		err = errors.New("")
 	}

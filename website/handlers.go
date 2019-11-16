@@ -27,7 +27,7 @@ func newHandlers(calendar calendar.Calendar) *handler {
 	return &handler{
 		handlers: make(map[string]http.HandlerFunc),
 		calendar: calendar,
-		logger:   loggers.Logger{}.GetLogger(),
+		logger:   loggers.GetLogger(),
 		error:    newError(),
 	}
 }
