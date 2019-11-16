@@ -20,6 +20,7 @@ type handler struct {
 	handlers map[string]http.HandlerFunc
 	calendar calendar.Calendar
 	logger   loggers.Logger
+	error    Error
 }
 
 func newHandlers(calendar calendar.Calendar) *handler {
@@ -27,14 +28,15 @@ func newHandlers(calendar calendar.Calendar) *handler {
 		handlers: make(map[string]http.HandlerFunc),
 		calendar: calendar,
 		logger:   loggers.Logger{}.GetLogger(),
+		error:    newError(),
 	}
 }
 
 func (h handler) hello(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	name := query.Get("name")
-	userID := query.Get("userid")
-	eventID := query.Get("eventid")
+	userID := query.Get("user_id")
+	eventID := query.Get("event_id")
 	if name == "" {
 		name = "default name"
 	}
