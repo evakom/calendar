@@ -14,12 +14,12 @@ import (
 
 // EventResult model.
 type EventResult struct {
-	models.Event `json:"result"`
+	Events []models.Event `json:"result"`
 }
 
 // NewEventResult returns result struct.
-func NewEventResult(event models.Event) EventResult {
-	return EventResult{event}
+func NewEventResult(events []models.Event) EventResult {
+	return EventResult{events}
 }
 
 // Encode marshals event to json.

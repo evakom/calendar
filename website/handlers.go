@@ -79,9 +79,11 @@ func (h handler) getEvent(w http.ResponseWriter, r *http.Request) {
 		h.error.send(w, http.StatusOK, err, "error while get event id="+eventID)
 		return
 	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	result, err := json.NewEventResult(events[0]).Encode()
+
+	result, err := json.NewEventResult(events).Encode()
 	if err != nil {
 
 		h.logger.WithFields(loggers.Fields{
@@ -103,7 +105,43 @@ func (h handler) getEvent(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h handler) getUserEvents(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, "user events")
+	query := r.URL.Query()
+	userID := query.Get("user_id")
+	events, err := h.calendar.GetAllEventsFilter(models.Event{
+		UserID: tools.IDString2UUIDorNil(userID),
+	})
+	if err != nil {
+
+		h.logger.WithFields(loggers.Fields{
+			ReqIDField:  getRequestID(r.Context()),
+			userIDField: userID,
+		}).Error(err.Error())
+
+		h.error.send(w, http.StatusOK, err, "error while get events for user id="+userID)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	result, err := json.NewEventResult(events).Encode()
+	if err != nil {
+
+		h.logger.WithFields(loggers.Fields{
+			ReqIDField:   getRequestID(r.Context()),
+			eventIDField: userID,
+		}).Error(err.Error())
+
+		h.error.send(w, http.StatusOK, err, "error while encode event id="+userID)
+		return
+	}
+	if _, err := io.WriteString(w, result); err != nil {
+		h.logger.Error("[getUserEvents] error write to response writer")
+	}
+
+	h.logger.WithFields(loggers.Fields{
+		CodeField:  http.StatusOK,
+		ReqIDField: getRequestID(r.Context()),
+	}).Info("RESPONSE")
 }
 
 func (h handler) createEvent(w http.ResponseWriter, r *http.Request) {
