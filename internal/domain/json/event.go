@@ -24,7 +24,7 @@ func NewEventResult(events []models.Event) EventResult {
 
 // Encode marshals event to json.
 func (er EventResult) Encode() (string, error) {
-	b, err := json.Marshal(er)
+	b, err := json.MarshalIndent(er, "", "  ")
 	if err != nil {
 		return "", err
 	}
