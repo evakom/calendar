@@ -124,3 +124,24 @@ func (h handler) getEventsAndSend(key, value string, w http.ResponseWriter, r *h
 
 	return nil
 }
+
+func (h handler) sendResult(events []models.Event, fromHandler string,
+	w http.ResponseWriter, r *http.Request) error {
+
+	result, err := json.NewEventResult(events).Encode()
+	if err != nil {
+		h.logger.WithFields(loggers.Fields{
+			CodeField:  http.StatusOK,
+			ReqIDField: getRequestID(r.Context()),
+		}).Error(err.Error())
+		h.error.send(w, http.StatusOK, err, "error while encode events for send result")
+		return err
+	}
+
+	if _, err := io.WriteString(w, result); err != nil {
+		h.logger.Error("[%s] error write to response writer", fromHandler)
+		return err
+	}
+
+	return nil
+}

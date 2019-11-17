@@ -8,11 +8,9 @@ package website
 
 import (
 	"github.com/evakom/calendar/internal/domain/calendar"
-	"github.com/evakom/calendar/internal/domain/json"
 	"github.com/evakom/calendar/internal/domain/models"
 	"github.com/evakom/calendar/internal/domain/urlform"
 	"github.com/evakom/calendar/internal/loggers"
-	"github.com/evakom/calendar/tools"
 	"io"
 	"net/http"
 )
@@ -50,19 +48,13 @@ func (h handler) hello(w http.ResponseWriter, r *http.Request) {
 	if _, err := io.WriteString(w, s); err != nil {
 		h.logger.Error("[hello] error write to response writer")
 	}
-
-	// test code for debug
-	event := models.NewEvent()
-	event.Location = "qqqqqqqqqqqqqqqqqqqqqq"
-	event.UserID = tools.IDString2UUIDorNil("a7fdcee4-8a27-4200-8529-c5336c886f77")
-	_ = h.calendar.AddEvent(event)
 }
 
 func (h handler) getEvent(w http.ResponseWriter, r *http.Request) {
 	key := "event_id"
 	value := r.URL.Query().Get(key)
 	if err := h.getEventsAndSend(key, value, w, r); err != nil {
-		h.logger.Debug("[getEvent] error: %s", err)
+		h.logger.Error("[getEvent] error: %s", err)
 	}
 }
 
@@ -70,7 +62,7 @@ func (h handler) getUserEvents(w http.ResponseWriter, r *http.Request) {
 	key := "user_id"
 	value := r.URL.Query().Get(key)
 	if err := h.getEventsAndSend(key, value, w, r); err != nil {
-		h.logger.Debug("[getUserEvents] error: %s", err)
+		h.logger.Error("[getUserEvents] error: %s", err)
 	}
 }
 
@@ -105,22 +97,9 @@ func (h handler) createEvent(w http.ResponseWriter, r *http.Request) {
 	events := make([]models.Event, 0)
 	events = append(events, event)
 
-	// send result helper
-	result, err := json.NewEventResult(events).Encode()
-	if err != nil {
-		h.logger.WithFields(loggers.Fields{
-			CodeField:  http.StatusOK,
-			ReqIDField: getRequestID(r.Context()),
-		}).Error(err.Error())
-		h.error.send(w, http.StatusOK, err, "error while encode event id="+event.ID.String())
-		return
+	if err := h.sendResult(events, "createEvent", w, r); err != nil {
+		h.logger.Error("[createEvent] error: %s", err)
 	}
-
-	if _, err := io.WriteString(w, result); err != nil {
-		h.logger.Error("[createEvent] error write to response writer")
-		return
-	}
-	// -----------------------
 
 	h.logger.WithFields(loggers.Fields{
 		CodeField:    http.StatusOK,
