@@ -12,8 +12,6 @@ import (
 	"time"
 )
 
-const formatString = "%-13s%s\n"
-
 // Event is the base event struct.
 type Event struct {
 	ID        uuid.UUID
@@ -34,10 +32,6 @@ func NewEvent() Event {
 		ID:        uuid.New(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
-		Subject:   "111",
-		Body:      "222",
-		Duration:  time.Minute,
-		Location:  "Moscow",
-		UserID:    uuid.New(), // todo uuid.Nil
+		UserID:    uuid.Nil,
 	}
 }

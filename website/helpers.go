@@ -30,8 +30,8 @@ const (
 	QueryField    = "query"
 	CodeField     = "response_code"
 	RespTimeField = "response_time"
-	eventIDField  = "event_id"
-	userIDField   = "user_id"
+	EventIDField  = "event_id"
+	UserIDField   = "user_id"
 )
 
 type contextKey string
@@ -80,16 +80,16 @@ func (h handler) getEventsAndSend(key, value string, w http.ResponseWriter, r *h
 	var fields loggers.Fields
 
 	switch key {
-	case eventIDField:
+	case EventIDField:
 		events, err = h.calendar.GetAllEventsFilter(models.Event{
 			ID: tools.IDString2UUIDorNil(value),
 		})
-		fields = loggers.Fields{eventIDField: value}
-	case userIDField:
+		fields = loggers.Fields{EventIDField: value}
+	case UserIDField:
 		events, err = h.calendar.GetAllEventsFilter(models.Event{
 			UserID: tools.IDString2UUIDorNil(value),
 		})
-		fields = loggers.Fields{userIDField: value}
+		fields = loggers.Fields{UserIDField: value}
 	default:
 		err = errors.New("invalid key-value in query for getting events")
 		fields = loggers.Fields{}
