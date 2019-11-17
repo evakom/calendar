@@ -8,12 +8,18 @@ package website
 
 import (
 	"github.com/evakom/calendar/internal/domain/calendar"
+	"github.com/evakom/calendar/internal/domain/json"
 	"github.com/evakom/calendar/internal/domain/models"
 	"github.com/evakom/calendar/internal/loggers"
 	"github.com/evakom/calendar/tools"
 	"github.com/google/uuid"
 	"io"
 	"net/http"
+)
+
+const (
+	eventIDField = "event_id"
+	userIDField  = "user_id"
 )
 
 type handler struct {
@@ -35,14 +41,14 @@ func newHandlers(calendar calendar.Calendar) *handler {
 func (h handler) hello(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	name := query.Get("name")
-	userID := query.Get("user_id")
-	eventID := query.Get("event_id")
+	//userID := query.Get("user_id")
+
 	if name == "" {
-		name = "default name"
+		name = "nobody"
 	}
 	h.logger.WithFields(loggers.Fields{
-		CodeField: http.StatusOK,
-		IDField:   getRequestID(r.Context()),
+		CodeField:  http.StatusOK,
+		ReqIDField: getRequestID(r.Context()),
 	}).Info("RESPONSE")
 
 	event := models.NewEvent()
@@ -52,19 +58,52 @@ func (h handler) hello(w http.ResponseWriter, r *http.Request) {
 
 	s := "Hello, my name is " + name + "\n\n"
 
+	if _, err := io.WriteString(w, s); err != nil {
+		h.logger.Error("[hello] error write to response writer")
+	}
+}
+
+func (h handler) getEvent(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	eventID := query.Get("event_id")
 	events, err := h.calendar.GetAllEventsFilter(models.Event{
-		ID:     tools.IDString2UUIDorNil(eventID),
-		UserID: tools.IDString2UUIDorNil(userID),
+		ID: tools.IDString2UUIDorNil(eventID),
 	})
 	if err != nil {
-		s += err.Error()
+
+		h.logger.WithFields(loggers.Fields{
+			ReqIDField:   getRequestID(r.Context()),
+			eventIDField: eventID,
+		}).Error(err.Error())
+
+		h.error.send(w, http.StatusOK, err, "error while get event id="+eventID)
+		return
 	}
-	for _, e := range events {
-		s += e.StringEr() + "\n"
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	result, err := json.NewEventResult(events[0]).Encode()
+	if err != nil {
+
+		h.logger.WithFields(loggers.Fields{
+			ReqIDField:   getRequestID(r.Context()),
+			eventIDField: eventID,
+		}).Error(err.Error())
+
+		h.error.send(w, http.StatusOK, err, "error while encode event id="+eventID)
+		return
 	}
-	if _, err := io.WriteString(w, s); err != nil {
-		h.logger.Error("Error write to response writer!")
+	if _, err := io.WriteString(w, result); err != nil {
+		h.logger.Error("[getEvent] error write to response writer")
 	}
+
+	h.logger.WithFields(loggers.Fields{
+		CodeField:  http.StatusOK,
+		ReqIDField: getRequestID(r.Context()),
+	}).Info("RESPONSE")
+}
+
+func (h handler) getUserEvents(w http.ResponseWriter, r *http.Request) {
+	io.WriteString(w, "user events")
 }
 
 func (h handler) createEvent(w http.ResponseWriter, r *http.Request) {

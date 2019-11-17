@@ -8,9 +8,7 @@
 package models
 
 import (
-	"fmt"
 	"github.com/google/uuid"
-	"strings"
 	"time"
 )
 
@@ -42,18 +40,4 @@ func NewEvent() Event {
 		Location:  "Moscow",
 		UserID:    uuid.New(), // todo uuid.Nil
 	}
-}
-
-// StringEr is event stringer
-func (e Event) StringEr() string {
-	sb := strings.Builder{}
-	sb.WriteString(fmt.Sprintf(formatString, "ID:", e.ID))
-	sb.WriteString(fmt.Sprintf(formatString, "CreatedAt:", e.CreatedAt))
-	sb.WriteString(fmt.Sprintf(formatString, "UpdatedAt:", e.UpdatedAt))
-	sb.WriteString(fmt.Sprintf(formatString, "Subject:", e.Subject))
-	sb.WriteString(fmt.Sprintf(formatString, "Body:", e.Body))
-	sb.WriteString(fmt.Sprintf(formatString, "Duration:", e.Duration))
-	sb.WriteString(fmt.Sprintf(formatString, "Location:", e.Location))
-	sb.WriteString(fmt.Sprintf(formatString, "UserID:", e.UserID))
-	return sb.String()
 }

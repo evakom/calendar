@@ -15,14 +15,14 @@ import (
 
 // Constants
 const (
-	IDField       = "id"
+	ReqIDField    = "request_id"
 	HostField     = "host"
 	MethodField   = "method"
 	URLField      = "url"
 	BrowserField  = "browser"
 	RemoteField   = "remote"
 	QueryField    = "query"
-	CodeField     = "code"
+	CodeField     = "response_code"
 	RespTimeField = "response_time"
 )
 
@@ -34,8 +34,8 @@ func requestFields(r *http.Request, args ...string) loggers.Fields {
 	fields := make(loggers.Fields)
 	for _, s := range args {
 		switch s {
-		case IDField:
-			fields[IDField] = getRequestID(r.Context())
+		case ReqIDField:
+			fields[ReqIDField] = getRequestID(r.Context())
 		case HostField:
 			fields[HostField] = r.Host
 		case MethodField:
