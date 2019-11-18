@@ -39,24 +39,31 @@ func DecodeID(sid string) (uuid.UUID, error) {
 
 // DecodeEvent returns decoded event from www-url-form values.
 func (v Values) DecodeEvent() (models.Event, error) {
+	event := models.NewEvent()
 
 	duration, err := time.ParseDuration(v[FormDuration])
 	if err != nil {
-		return models.Event{}, err
+		return event, err
 	}
 
-	userID, err := DecodeID(v[FormUserID])
-	if err != nil {
-		return models.Event{}, fmt.Errorf("illegal user id - %w", err)
+	if v[FormEventID] == "" {
+		userID, err := DecodeID(v[FormUserID])
+		if err != nil {
+			return event, fmt.Errorf("illegal user id - %w", err)
+		}
+		event.UserID = userID
+	} else {
+		eventID, err := DecodeID(v[FormEventID])
+		if err != nil {
+			return event, fmt.Errorf("illegal event id - %w", err)
+		}
+		event.ID = eventID
 	}
-
-	event := models.NewEvent()
 
 	event.Subject = v[FormSubject]
 	event.Body = v[FormBody]
 	event.Location = v[FormLocation]
 	event.Duration = duration
-	event.UserID = userID
 
 	return event, nil
 }

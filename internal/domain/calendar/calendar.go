@@ -69,3 +69,8 @@ func (c Calendar) GetAllEventsFilter(filter models.Event) ([]models.Event, error
 
 	return nil, errors.ErrNothingFound
 }
+
+func (c Calendar) UpdateEventFromEvent(event models.Event) (models.Event, error) {
+
+	return event, nil
+}
