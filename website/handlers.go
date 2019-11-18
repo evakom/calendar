@@ -7,6 +7,7 @@
 package website
 
 import (
+	"fmt"
 	"github.com/evakom/calendar/internal/domain/calendar"
 	"github.com/evakom/calendar/internal/domain/models"
 	"github.com/evakom/calendar/internal/domain/urlform"
@@ -51,18 +52,18 @@ func (h handler) hello(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h handler) getEvent(w http.ResponseWriter, r *http.Request) {
-	key := "event_id"
+	key := urlform.FormEventID
 	value := r.URL.Query().Get(key)
 	if err := h.getEventsAndSend(key, value, w, r); err != nil {
-		h.logger.Error("[getEvent] error: %s", err)
+		h.logger.Debug("[getEvent] error: %s", err)
 	}
 }
 
 func (h handler) getUserEvents(w http.ResponseWriter, r *http.Request) {
-	key := "user_id"
+	key := urlform.FormUserID
 	value := r.URL.Query().Get(key)
 	if err := h.getEventsAndSend(key, value, w, r); err != nil {
-		h.logger.Error("[getUserEvents] error: %s", err)
+		h.logger.Debug("[getUserEvents] error: %s", err)
 	}
 }
 
@@ -86,11 +87,12 @@ func (h handler) createEvent(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.calendar.AddEvent(event); err != nil {
 		h.logger.WithFields(loggers.Fields{
-			CodeField:  http.StatusInternalServerError,
-			ReqIDField: getRequestID(r.Context()),
+			CodeField:    http.StatusInternalServerError,
+			ReqIDField:   getRequestID(r.Context()),
+			EventIDField: event.ID.String(),
 		}).Error(err.Error())
 		h.error.send(w, http.StatusInternalServerError, err,
-			"error while adding to DB, event id="+event.ID.String())
+			"error while adding into calendar, event id="+event.ID.String())
 		return
 	}
 
@@ -102,9 +104,8 @@ func (h handler) createEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.logger.WithFields(loggers.Fields{
-		CodeField:    http.StatusOK,
-		ReqIDField:   getRequestID(r.Context()),
-		EventIDField: event.ID.String(),
+		CodeField:  http.StatusOK,
+		ReqIDField: getRequestID(r.Context()),
 	}).Info("RESPONSE")
 }
 
@@ -113,7 +114,44 @@ func (h handler) updateEvent(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h handler) deleteEvent(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, "delete")
+	value := r.FormValue(urlform.FormEventID)
+
+	uid, err := urlform.DecodeID(value)
+	if err != nil {
+		h.logger.WithFields(loggers.Fields{
+			CodeField:  http.StatusBadRequest,
+			ReqIDField: getRequestID(r.Context()),
+		}).Error(err.Error())
+		h.error.send(w, http.StatusBadRequest, err,
+			fmt.Sprintf("error while decode event id=%s", value))
+		return
+	}
+
+	if err := h.calendar.DelEvent(uid); err != nil {
+		h.logger.WithFields(loggers.Fields{
+			CodeField:    http.StatusOK,
+			ReqIDField:   getRequestID(r.Context()),
+			EventIDField: uid.String(),
+		}).Error(err.Error())
+		h.error.send(w, http.StatusOK, err,
+			"error while delete from calendar, event id="+uid.String())
+		return
+	}
+
+	events := make([]models.Event, 0)
+	event := models.Event{}
+	event.ID = uid
+	events = append(events, event)
+
+	if err := h.sendResult(events, "deleteEvent", w, r); err != nil {
+		h.logger.Error("[deleteEvent] error: %s", err)
+	}
+
+	h.logger.WithFields(loggers.Fields{
+		CodeField:  http.StatusOK,
+		ReqIDField: getRequestID(r.Context()),
+	}).Info("RESPONSE")
+
 }
 
 func (h handler) eventsForDay(w http.ResponseWriter, r *http.Request) {

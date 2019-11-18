@@ -96,9 +96,10 @@ func (h handler) getEventsAndSend(key, value string, w http.ResponseWriter, r *h
 	}
 
 	fields[ReqIDField] = getRequestID(r.Context())
+
 	if err != nil {
 		h.logger.WithFields(fields).Error(err.Error())
-		h.error.send(w, http.StatusOK, err, fmt.Sprintf("error while get events %s=%s", key, value))
+		h.error.send(w, http.StatusOK, err, fmt.Sprintf("error while get events, %s=%s", key, value))
 		return err
 	}
 
