@@ -42,7 +42,7 @@ func (v Values) DecodeEvent() (models.Event, error) {
 	event := models.NewEvent()
 
 	duration, err := time.ParseDuration(v[FormDuration])
-	if err != nil {
+	if err != nil && v[FormDuration] != "" {
 		return event, err
 	}
 
