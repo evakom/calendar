@@ -17,12 +17,14 @@ import (
 
 // Constants.
 const (
+	FormOccursAt = "occurs_at"
 	FormSubject  = "subject"
 	FormBody     = "body"
 	FormLocation = "location"
 	FormDuration = "duration"
 	FormUserID   = "user_id"
 	FormEventID  = "event_id"
+	FormDay      = "day"
 )
 
 // Values is the base www-url-form values type.
@@ -40,6 +42,11 @@ func DecodeID(sid string) (uuid.UUID, error) {
 // DecodeEvent returns decoded event from www-url-form values.
 func (v Values) DecodeEvent() (models.Event, error) {
 	event := models.NewEvent()
+
+	occurs, err := time.Parse("2006-01-02 15:04:05", v[FormOccursAt])
+	if err != nil && v[FormOccursAt] != "" {
+		return event, err
+	}
 
 	duration, err := time.ParseDuration(v[FormDuration])
 	if err != nil && v[FormDuration] != "" {
@@ -64,6 +71,7 @@ func (v Values) DecodeEvent() (models.Event, error) {
 	event.Body = v[FormBody]
 	event.Location = v[FormLocation]
 	event.Duration = duration
+	event.OccursAt = occurs
 
 	return event, nil
 }

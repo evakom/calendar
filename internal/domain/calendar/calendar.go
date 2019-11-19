@@ -48,7 +48,7 @@ func (c Calendar) UpdateEvent(event models.Event) error {
 }
 
 // GetAllEventsFilter returns all calendar events with given filter.
-func (c Calendar) GetAllEventsFilter(filter models.Event) ([]models.Event, error) {
+func (c Calendar) GetAllEventsFilter(filter models.Event, opt int) ([]models.Event, error) {
 	result := make([]models.Event, 0)
 
 	if filter.ID != uuid.Nil {
@@ -62,6 +62,15 @@ func (c Calendar) GetAllEventsFilter(filter models.Event) ([]models.Event, error
 
 	if filter.UserID != uuid.Nil {
 		events := c.db.GetAllEventsDB(filter.UserID)
+		if len(events) == 0 {
+			return nil, errors.ErrEventsNotFound
+		}
+		return events, nil
+	}
+
+	dNil := time.Time{}
+	if filter.OccursAt != dNil {
+		events := c.db.GetAllEventsDBDays(filter.OccursAt, opt)
 		if len(events) == 0 {
 			return nil, errors.ErrEventsNotFound
 		}
