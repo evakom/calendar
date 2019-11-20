@@ -35,6 +35,8 @@ const (
 	EventIDField  = "event_id"
 	UserIDField   = "user_id"
 	DayField      = "day"
+	WeekField     = "week"
+	MonthField    = "month"
 )
 
 type contextKey string
@@ -99,6 +101,18 @@ func (h handler) getEventsAndSend(key, value string, w http.ResponseWriter, r *h
 			Duration: 24 * time.Hour,
 		})
 		fields = loggers.Fields{DayField: value}
+	case urlform.FormWeek:
+		events, err = h.calendar.GetAllEventsFilter(models.Event{
+			OccursAt: tools.DayString2TimeOrNil(value),
+			Duration: 24 * time.Hour * 7,
+		})
+		fields = loggers.Fields{WeekField: value}
+	case urlform.FormMonth:
+		events, err = h.calendar.GetAllEventsFilter(models.Event{
+			OccursAt: tools.DayString2TimeOrNil(value),
+			Duration: 24 * time.Hour * 30,
+		})
+		fields = loggers.Fields{MonthField: value}
 	default:
 		err = errors.New("invalid key-value in query for getting events")
 		fields = loggers.Fields{}

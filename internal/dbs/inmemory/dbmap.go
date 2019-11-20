@@ -21,6 +21,7 @@ const (
 	EventIDField = "event_id"
 	UserIDField  = "user_id"
 	DayField     = "day"
+	DeltaField   = "delta"
 )
 
 // DBMapEvents is the base struct for using map db.
@@ -154,7 +155,8 @@ func (db *DBMapEvents) GetAllEventsDBDays(date time.Time, delta time.Duration) [
 		}
 	}
 	db.logger.WithFields(loggers.Fields{
-		DayField: date.String(),
-	}).Info("All events for day(s) got from map DB")
+		DayField:   date.String(),
+		DeltaField: delta,
+	}).Info("All events for day(s) with delta got from map DB")
 	return events
 }

@@ -182,9 +182,17 @@ func (h handler) eventsForDay(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h handler) eventsForWeek(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, "events for week")
+	key := urlform.FormWeek
+	value := r.URL.Query().Get(key)
+	if err := h.getEventsAndSend(key, value, w, r); err != nil {
+		h.logger.Debug("[eventsForWeek] error: %s", err)
+	}
 }
 
 func (h handler) eventsForMonth(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, "events for month")
+	key := urlform.FormMonth
+	value := r.URL.Query().Get(key)
+	if err := h.getEventsAndSend(key, value, w, r); err != nil {
+		h.logger.Debug("[eventsForMonth] error: %s", err)
+	}
 }
