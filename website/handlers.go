@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"github.com/evakom/calendar/internal/domain/calendar"
 	"github.com/evakom/calendar/internal/domain/models"
-	"github.com/evakom/calendar/internal/domain/urlform"
 	"github.com/evakom/calendar/internal/loggers"
+	"github.com/evakom/calendar/internal/urlform"
 	"io"
 	"net/http"
 )
