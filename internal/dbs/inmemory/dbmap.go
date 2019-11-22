@@ -121,7 +121,7 @@ func (db *DBMapEvents) GetAllEventsDB(id uuid.UUID) []models.Event {
 	}
 	db.logger.WithFields(loggers.Fields{
 		UserIDField: id.String(),
-	}).Info("All events got from map DB")
+	}).Info("All events [%d] got from map DB", len(events))
 	return events
 }
 

@@ -86,12 +86,32 @@ func (db *DBPostgresEvents) AddEventDB(event models.Event) error {
 
 // DelEventDB deletes one event by id.
 func (db *DBPostgresEvents) DelEventDB(id uuid.UUID) error {
-	// TODO
+	event := models.Event{}
+	event.ID = id
+	event.DeletedAt = time.Now()
+	query := "update " + EventsTable + " set deletedat=:deletedat where id=:id"
+
+	result, err := db.db.NamedExecContext(db.ctx, query, event)
+	if err != nil {
+		db.logger.Error("[DelEventDB][NamedExecContext]: %s", err)
+		return fmt.Errorf("error execute delete event from DB: %w", err)
+	}
+
+	ra, err := result.RowsAffected()
+	if err != nil {
+		db.logger.Error("[DelEventDB][RowsAffected]: %s", err)
+		return fmt.Errorf("error get affected rows: %w", err)
+	}
+	if ra == 0 {
+		db.logger.Error("[DelEventDB][RowsAffected]: no affected")
+		return errors.ErrEventNotFound
+	}
+
 	db.logger.WithFields(loggers.Fields{
 		EventIDField: id.String(),
-		//userIdField:  e.UserID.String(),
+		UserIDField:  event.UserID.String(),
 	}).Info("Event deleted from postgres DB")
-	//db.logger.Debug("Event body deleted from postgres DB: %+v", e)
+	db.logger.Debug("Event body deleted from postgres DB: %+v", event)
 	return nil
 }
 
@@ -110,7 +130,7 @@ func (db *DBPostgresEvents) EditEventDB(event models.Event) error {
 func (db *DBPostgresEvents) GetOneEventDB(id uuid.UUID) (models.Event, error) {
 	event := models.Event{}
 	event.ID = id
-	query := "select * from " + EventsTable + " where id=:id"
+	query := "select * from " + EventsTable + " where id=:id and deletedat =:deletedat"
 
 	rows, err := db.db.NamedQueryContext(db.ctx, query, event)
 	if err != nil {
@@ -134,7 +154,7 @@ func (db *DBPostgresEvents) GetOneEventDB(id uuid.UUID) (models.Event, error) {
 	db.logger.Debug("Event body got from postgres DB: %+v", event)
 
 	if err := rows.Close(); err != nil {
-		db.logger.Error("error close rows: %s", err)
+		db.logger.Error("[GetOneEventDB] error close rows: %s", err)
 	}
 	return event, nil
 }
@@ -144,7 +164,7 @@ func (db *DBPostgresEvents) GetAllEventsDB(id uuid.UUID) []models.Event {
 	events := make([]models.Event, 0)
 	event := models.Event{}
 	event.UserID = id
-	query := "select * from " + EventsTable + " where userid=:userid"
+	query := "select * from " + EventsTable + " where userid=:userid and deletedat =:deletedat"
 
 	rows, err := db.db.NamedQueryContext(db.ctx, query, event)
 	if err != nil {
@@ -162,16 +182,39 @@ func (db *DBPostgresEvents) GetAllEventsDB(id uuid.UUID) []models.Event {
 
 	db.logger.WithFields(loggers.Fields{
 		UserIDField: id.String(),
-	}).Info("All events got from postgres DB")
+	}).Info("All events [%d] got from postgres DB", len(events))
+
+	if err := rows.Close(); err != nil {
+		db.logger.Error("[GetAllEventsDB] error close rows: %s", err)
+	}
 	return events
 }
 
 // CleanEventsDB cleans db and deletes all events in the db for given user id (no restoring!).
 func (db *DBPostgresEvents) CleanEventsDB(id uuid.UUID) error {
-	// TODO
+	event := models.Event{}
+	event.UserID = id
+	query := "delete from " + EventsTable + " where userid=:userid"
+
+	result, err := db.db.NamedExecContext(db.ctx, query, event)
+	if err != nil {
+		db.logger.Error("[CleanEventsDB][NamedExecContext]: %s", err)
+		return fmt.Errorf("error execute delete events from DB: %w", err)
+	}
+
+	ra, err := result.RowsAffected()
+	if err != nil {
+		db.logger.Error("[CleanEventsDB][RowsAffected]: %s", err)
+		return fmt.Errorf("error get affected rows: %w", err)
+	}
+	if ra == 0 {
+		db.logger.Error("[CleanEventsDB][RowsAffected]: no affected")
+		return errors.ErrEventsNotFound
+	}
+
 	db.logger.WithFields(loggers.Fields{
 		UserIDField: id.String(),
-	}).Info("All events deleted in postgres DB")
+	}).Info("All events [%d] deleted in postgres DB", ra)
 	return nil
 }
 
