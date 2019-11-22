@@ -140,7 +140,7 @@ func (db *DBMapEvents) CleanEventsDB(id uuid.UUID) error {
 	}
 	db.logger.WithFields(loggers.Fields{
 		UserIDField: id.String(),
-	}).Info("All events deleted")
+	}).Info("All events deleted in map DB")
 	return nil
 }
 

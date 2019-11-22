@@ -36,7 +36,7 @@ type DBPostgresEvents struct {
 }
 
 // NewPostgresDB returns new postgres db struct.
-func NewPostgresDB(dsn string, ctx context.Context) (*DBPostgresEvents, error) {
+func NewPostgresDB(ctx context.Context, dsn string) (*DBPostgresEvents, error) {
 	db, err := sqlx.Open("pgx", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("error open db: %w", err)
@@ -109,7 +109,6 @@ func (db *DBPostgresEvents) EditEventDB(event models.Event) error {
 // GetOneEventDB returns one event by id.
 func (db *DBPostgresEvents) GetOneEventDB(id uuid.UUID) (models.Event, error) {
 	event := models.Event{}
-
 	event.ID = id
 	query := "select * from " + EventsTable + " where id=:id"
 
@@ -142,11 +141,29 @@ func (db *DBPostgresEvents) GetOneEventDB(id uuid.UUID) (models.Event, error) {
 
 // GetAllEventsDB return all events slice for given user id (no deleted).
 func (db *DBPostgresEvents) GetAllEventsDB(id uuid.UUID) []models.Event {
-	// TODO
+	events := make([]models.Event, 0)
+	event := models.Event{}
+	event.UserID = id
+	query := "select * from " + EventsTable + " where userid=:userid"
+
+	rows, err := db.db.NamedQueryContext(db.ctx, query, event)
+	if err != nil {
+		db.logger.Error("[GetAllEventsDB][NamedQueryContext]: %s", err)
+		return events
+	}
+
+	for rows.Next() {
+		if err := rows.StructScan(&event); err != nil {
+			db.logger.Error("[GetAllEventsDB][StructScan]: %s", err)
+			continue
+		}
+		events = append(events, event)
+	}
+
 	db.logger.WithFields(loggers.Fields{
 		UserIDField: id.String(),
-	}).Info("All events got from map DB")
-	return []models.Event{}
+	}).Info("All events got from postgres DB")
+	return events
 }
 
 // CleanEventsDB cleans db and deletes all events in the db for given user id (no restoring!).
@@ -154,7 +171,7 @@ func (db *DBPostgresEvents) CleanEventsDB(id uuid.UUID) error {
 	// TODO
 	db.logger.WithFields(loggers.Fields{
 		UserIDField: id.String(),
-	}).Info("All events deleted")
+	}).Info("All events deleted in postgres DB")
 	return nil
 }
 
