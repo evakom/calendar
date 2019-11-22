@@ -10,12 +10,12 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"github.com/evakom/calendar/internal/domain/errors"
 	"github.com/evakom/calendar/internal/domain/models"
 	"github.com/evakom/calendar/internal/loggers"
 	"github.com/google/uuid"
 	_ "github.com/jackc/pgx/stdlib" // driver for postgres
 	"github.com/jmoiron/sqlx"
-	"log"
 	"time"
 )
 
@@ -56,13 +56,25 @@ func NewPostgresDB(dsn string, ctx context.Context) (*DBPostgresEvents, error) {
 
 // AddEventDB adds event to postgres db.
 func (db *DBPostgresEvents) AddEventDB(event models.Event) error {
-	query := `insert into events values(:id, :createdat, :updatedat, :deletedat,
-                          :occursat, :subject, :body, :duration, :location, :userid)`
+	query := "insert into " + EventsTable + " (id, createdat, updatedat, deletedat, occursat, " +
+		"subject, body, duration, location, userid) " +
+		"values(:id, :createdat, :updatedat, :deletedat, :occursat, " +
+		":subject, :body, :duration, :location, :userid)"
 	result, err := db.db.NamedExecContext(db.ctx, query, event)
 	if err != nil {
-		return err
+		db.logger.Error("[AddEventDB][NamedExecContext]: %s", err)
+		return fmt.Errorf("error execute adding event into DB: %w", err)
 	}
-	log.Println(result.RowsAffected())
+
+	ra, err := result.RowsAffected()
+	if err != nil {
+		db.logger.Error("[AddEventDB][RowsAffected]: %s", err)
+		return fmt.Errorf("error get affected rows: %w", err)
+	}
+	if ra != 1 {
+		db.logger.Error("[AddEventDB][RowsAffected]: no affected")
+		return fmt.Errorf("event not inserted into db: no rows affected")
+	}
 
 	db.logger.WithFields(loggers.Fields{
 		EventIDField: event.ID.String(),
@@ -96,13 +108,36 @@ func (db *DBPostgresEvents) EditEventDB(event models.Event) error {
 
 // GetOneEventDB returns one event by id.
 func (db *DBPostgresEvents) GetOneEventDB(id uuid.UUID) (models.Event, error) {
-	// TODO
+	event := models.Event{}
+
+	event.ID = id
+	query := "select * from " + EventsTable + " where id=:id"
+
+	rows, err := db.db.NamedQueryContext(db.ctx, query, event)
+	if err != nil {
+		db.logger.Error("[GetOneEventDB][NamedQueryContext]: %s", err)
+		return event, fmt.Errorf("error execute get one event from DB: %w", err)
+	}
+
+	if rows.Next() {
+		if err := rows.StructScan(&event); err != nil {
+			db.logger.Error("[GetOneEventDB][StructScan]: %s", err)
+			return event, fmt.Errorf("error scan DB row to event: %w", err)
+		}
+	} else {
+		return event, errors.ErrEventNotFound
+	}
+
 	db.logger.WithFields(loggers.Fields{
 		EventIDField: id.String(),
-		//userIdField:  db.events[id].UserID.String(),
+		UserIDField:  event.UserID.String(),
 	}).Info("Event got from postgres DB")
-	//db.logger.Debug("Event body got from postgres DB: %+v", db.events[id])
-	return models.Event{}, nil
+	db.logger.Debug("Event body got from postgres DB: %+v", event)
+
+	if err := rows.Close(); err != nil {
+		db.logger.Error("error close rows: %s", err)
+	}
+	return event, nil
 }
 
 // GetAllEventsDB return all events slice for given user id (no deleted).

@@ -16,7 +16,7 @@ import (
 
 // Constants
 const (
-	MapDBType      = "map"
+	MapDBType      = "inmemory"
 	PostgresDBType = "postgres"
 )
 
