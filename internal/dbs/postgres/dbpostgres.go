@@ -246,12 +246,36 @@ func (db *DBPostgresEvents) CleanEventsDB(id uuid.UUID) error {
 	return nil
 }
 
-// GetAllEventsDBDays returns events for num of the days
-func (db *DBPostgresEvents) GetAllEventsDBDays(date time.Time, delta time.Duration) []models.Event {
-	// TODO
+// GetAllEventsDBDays returns events for num of the days for given user
+func (db *DBPostgresEvents) GetAllEventsDBDays(id uuid.UUID, date time.Time, delta time.Duration) []models.Event {
+	events := make([]models.Event, 0)
+	//event := models.Event{UserID: id}
+	//occursEnd := date.Add(delta)
+	//
+	//uid := ""
+	//if id != uuid.Nil {
+	//	uid = "userid=:userid and"
+	//}
+	//
+	//query := "select * from " + EventsTable + " where " + uid + " occursat=:occursat"
+	//
+	//rows, err := db.db.NamedQueryContext(db.ctx, query, event)
+	//if err != nil {
+	//	db.logger.Error("[GetAllEventsDB][NamedQueryContext]: %s", err)
+	//	return events
+	//}
+	//
+	//for rows.Next() {
+	//	if err := rows.StructScan(&event); err != nil {
+	//		db.logger.Error("[GetAllEventsDB][StructScan]: %s", err)
+	//		continue
+	//	}
+	//	events = append(events, event)
+	//}
+
 	db.logger.WithFields(loggers.Fields{
 		DayField:   date.String(),
 		DeltaField: delta,
-	}).Info("All events for day(s) got from map DB")
-	return []models.Event{}
+	}).Info("All events [%d] for day(s) got from map DB", len(events))
+	return events
 }

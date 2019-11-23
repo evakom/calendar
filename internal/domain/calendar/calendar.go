@@ -67,7 +67,7 @@ func (c Calendar) GetAllEventsFilter(filter models.Event) ([]models.Event, error
 		}
 		return events, nil
 	case filter.OccursAt != dateNil:
-		events := c.db.GetAllEventsDBDays(filter.OccursAt, filter.Duration)
+		events := c.db.GetAllEventsDBDays(filter.UserID, filter.OccursAt, filter.Duration)
 		if len(events) == 0 {
 			return nil, errors.ErrEventsNotFound
 		}
