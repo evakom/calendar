@@ -131,7 +131,7 @@ func (db *DBPostgresEvents) EditEventDB(event models.Event) error {
 	query := "update " + EventsTable + " set updatedat=:updatedat, " +
 		"occursat=:occursat, subject=:subject, body=:body, " +
 		"duration=:duration, location=:location " +
-		"where id=:id"
+		"where id=:id and deletedat =:deletedat"
 
 	result, err := db.db.NamedExecContext(db.ctx, query, eventNew)
 	if err != nil {
@@ -247,35 +247,40 @@ func (db *DBPostgresEvents) CleanEventsDB(id uuid.UUID) error {
 }
 
 // GetAllEventsDBDays returns events for num of the days for given user
-func (db *DBPostgresEvents) GetAllEventsDBDays(id uuid.UUID, date time.Time, delta time.Duration) []models.Event {
+func (db *DBPostgresEvents) GetAllEventsDBDays(filter models.Event) []models.Event {
 	events := make([]models.Event, 0)
-	//event := models.Event{UserID: id}
-	//occursEnd := date.Add(delta)
-	//
-	//uid := ""
-	//if id != uuid.Nil {
-	//	uid = "userid=:userid and"
-	//}
-	//
-	//query := "select * from " + EventsTable + " where " + uid + " occursat=:occursat"
-	//
-	//rows, err := db.db.NamedQueryContext(db.ctx, query, event)
-	//if err != nil {
-	//	db.logger.Error("[GetAllEventsDB][NamedQueryContext]: %s", err)
-	//	return events
-	//}
-	//
-	//for rows.Next() {
-	//	if err := rows.StructScan(&event); err != nil {
-	//		db.logger.Error("[GetAllEventsDB][StructScan]: %s", err)
-	//		continue
-	//	}
-	//	events = append(events, event)
-	//}
+	event := models.Event{
+		UserID:   filter.UserID,
+		OccursAt: filter.OccursAt,
+	}
+	occursEnd := filter.OccursAt.Add(filter.Duration)
+	event.UpdatedAt = occursEnd
+
+	uid := ""
+	if filter.UserID != uuid.Nil {
+		uid = "userid=:userid and"
+	}
+
+	query := "select * from " + EventsTable + " where " + uid +
+		" deletedat =:deletedat and occursat>=:occursat and occursat<:updatedat"
+
+	rows, err := db.db.NamedQueryContext(db.ctx, query, event)
+	if err != nil {
+		db.logger.Error("[GetAllEventsDBDays][NamedQueryContext]: %s", err)
+		return events
+	}
+
+	for rows.Next() {
+		if err := rows.StructScan(&event); err != nil {
+			db.logger.Error("[GetAllEventsDBDays][StructScan]: %s", err)
+			continue
+		}
+		events = append(events, event)
+	}
 
 	db.logger.WithFields(loggers.Fields{
-		DayField:   date.String(),
-		DeltaField: delta,
+		DayField:   filter.OccursAt.String(),
+		DeltaField: filter.Duration,
 	}).Info("All events [%d] for day(s) got from map DB", len(events))
 	return events
 }

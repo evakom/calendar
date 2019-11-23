@@ -10,7 +10,6 @@ package storage
 import (
 	"github.com/evakom/calendar/internal/domain/models"
 	"github.com/google/uuid"
-	"time"
 )
 
 // DB is thw main interface for any DBs
@@ -21,5 +20,5 @@ type DB interface {
 	GetOneEventDB(uuid.UUID) (models.Event, error)
 	GetAllEventsDB(uuid.UUID) []models.Event
 	CleanEventsDB(uuid.UUID) error
-	GetAllEventsDBDays(uuid.UUID, time.Time, time.Duration) []models.Event
+	GetAllEventsDBDays(models.Event) []models.Event
 }

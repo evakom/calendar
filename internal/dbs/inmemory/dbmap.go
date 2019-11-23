@@ -145,21 +145,21 @@ func (db *DBMapEvents) CleanEventsDB(id uuid.UUID) error {
 }
 
 // GetAllEventsDBDays returns events for num of the days for given user
-func (db *DBMapEvents) GetAllEventsDBDays(id uuid.UUID, date time.Time, delta time.Duration) []models.Event {
+func (db *DBMapEvents) GetAllEventsDBDays(filter models.Event) []models.Event {
 	events := make([]models.Event, 0, len(db.events))
-	occursEnd := date.Add(delta)
+	occursEnd := filter.OccursAt.Add(filter.Duration)
 	for _, event := range db.events {
-		if event.UserID != id && id != uuid.Nil {
+		if event.UserID != filter.UserID && filter.UserID != uuid.Nil {
 			continue
 		}
-		if event.OccursAt.Equal(date) ||
-			(event.OccursAt.After(date) && event.OccursAt.Before(occursEnd)) {
+		if event.OccursAt.Equal(filter.OccursAt) ||
+			(event.OccursAt.After(filter.OccursAt) && event.OccursAt.Before(occursEnd)) {
 			events = append(events, event)
 		}
 	}
 	db.logger.WithFields(loggers.Fields{
-		DayField:   date.String(),
-		DeltaField: delta,
+		DayField:   filter.OccursAt.String(),
+		DeltaField: filter.Duration,
 	}).Info("All events [%d] for day(s) with delta got from map DB", len(events))
 	return events
 }
