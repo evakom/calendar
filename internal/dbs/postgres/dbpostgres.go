@@ -63,7 +63,8 @@ func (db *DBPostgresEvents) AddEventDB(event models.Event) error {
 	result, err := db.db.NamedExecContext(db.ctx, query, event)
 	if err != nil {
 		db.logger.Error("[AddEventDB][NamedExecContext]: %s", err)
-		return fmt.Errorf("error execute adding event into DB")
+		return errors.ErrEventAlreadyExists
+		//return fmt.Errorf("error execute adding event into DB")
 	}
 
 	ra, err := result.RowsAffected()
@@ -146,7 +147,8 @@ func (db *DBPostgresEvents) EditEventDB(event models.Event) error {
 	}
 	if ra != 1 {
 		db.logger.Error("[EditEventDB][RowsAffected]: no affected")
-		return fmt.Errorf("event not updated in db: no rows affected")
+		return errors.ErrEventNotFound
+		//return fmt.Errorf("event not updated in db: no rows affected")
 	}
 
 	db.logger.WithFields(loggers.Fields{
@@ -222,7 +224,12 @@ func (db *DBPostgresEvents) GetAllEventsDB(id uuid.UUID) []models.Event {
 // CleanEventsDB cleans db and deletes all events in the db for given user id (no restoring!).
 func (db *DBPostgresEvents) CleanEventsDB(id uuid.UUID) error {
 	event := models.Event{UserID: id}
-	query := "delete from " + EventsTable + " where userid=:userid"
+
+	uid := ""
+	if id != uuid.Nil {
+		uid = " where userid=:userid"
+	}
+	query := "delete from " + EventsTable + uid
 
 	result, err := db.db.NamedExecContext(db.ctx, query, event)
 	if err != nil {

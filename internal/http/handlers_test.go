@@ -17,7 +17,7 @@ import (
 	"testing"
 )
 
-const fileConfigPath = "../config.yml"
+const fileConfigPath = "../../config.yml"
 
 var handlers *handler
 
