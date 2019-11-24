@@ -16,7 +16,7 @@ http_listen:
 
 # ip:port for listening gRPC
 # default - localhost:50051
-grpc_listen: :8080
+grpc_listen:
 
 # dsn for db - no default, need to set here
 dsn: postgres://testuser:123456@Klim.go:5432/calendar

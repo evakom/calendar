@@ -63,41 +63,41 @@ func (cs *CalendarServer) StartGRPCServer(addr string) {
 }
 
 // CreateEvent creates event.
-func (cs *CalendarServer) CreateEvent(context.Context, *Event) (*EventResponse, error) {
-	panic("implement me")
+func (cs *CalendarServer) CreateEvent(context.Context, *EventRequest) (*EventResponse, error) {
+	panic("CreateEvent implement me")
 }
 
 // GetEvent got one event by id.
 func (cs *CalendarServer) GetEvent(context.Context, *ID) (*EventResponse, error) {
-	panic("implement me")
+	panic("GetEvent implement me")
 }
 
 // GetUserEvents returns all events for given user.
 func (cs *CalendarServer) GetUserEvents(context.Context, *ID) (*EventsResponse, error) {
-	panic("implement me")
+	panic("GetUserEvents implement me")
 }
 
 // UpdateEvent updates event by id.
-func (cs *CalendarServer) UpdateEvent(context.Context, *Event) (*EventResponse, error) {
-	panic("implement me")
+func (cs *CalendarServer) UpdateEvent(context.Context, *EventRequest) (*EventResponse, error) {
+	panic("UpdateEvent implement me")
 }
 
 // DeleteEvent deletes event from DB.
 func (cs *CalendarServer) DeleteEvent(context.Context, *ID) (*EventResponse, error) {
-	panic("implement me")
+	panic("DeleteEvent implement me")
 }
 
 // GetEventsForDay returns all events for given day.
 func (cs *CalendarServer) GetEventsForDay(context.Context, *Day) (*EventsResponse, error) {
-	panic("implement me")
+	panic("GetEventsForDay implement me")
 }
 
 // GetEventsForWeek returns all events for given week from day.
 func (cs *CalendarServer) GetEventsForWeek(context.Context, *Day) (*EventsResponse, error) {
-	panic("implement me")
+	panic("GetEventsForWeek implement me")
 }
 
 // GetEventsForMonth returns all events for given month from day.
 func (cs *CalendarServer) GetEventsForMonth(context.Context, *Day) (*EventsResponse, error) {
-	panic("implement me")
+	panic("GetEventsForMonth implement me")
 }

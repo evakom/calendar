@@ -44,6 +44,15 @@ message Day {
     google.protobuf.Timestamp day = 1;
 }
 
+message EventRequest {
+    google.protobuf.Timestamp occurs_at = 1;
+    string subject = 2;
+    string body = 3;
+    string location = 4;
+    google.protobuf.Duration duration = 5;
+    string userID = 6;
+}
+
 message EventResponse {
     oneof result {
         Event event = 1;
@@ -56,13 +65,13 @@ message EventsResponse {
 }
 
 service CalendarService {
-    rpc CreateEvent (Event) returns (EventResponse) {
+    rpc CreateEvent (EventRequest) returns (EventResponse) {
     };
     rpc GetEvent (ID) returns (EventResponse) {
     };
     rpc GetUserEvents (ID) returns (EventsResponse) {
     };
-    rpc UpdateEvent (Event) returns (EventResponse) {
+    rpc UpdateEvent (EventRequest) returns (EventResponse) {
     };
     rpc DeleteEvent (ID) returns (EventResponse) {
     };
