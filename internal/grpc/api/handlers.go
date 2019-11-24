@@ -8,6 +8,7 @@ package api
 
 import (
 	"context"
+	"github.com/evakom/calendar/internal/domain/errors"
 	"github.com/evakom/calendar/internal/domain/models"
 	"github.com/evakom/calendar/internal/loggers"
 	"github.com/golang/protobuf/ptypes"
@@ -41,14 +42,23 @@ func (cs *CalendarServer) CreateEvent(ctx context.Context, req *EventRequest) (*
 
 	occursAt, err := ptypes.Timestamp(protoEvent.OccursAt)
 	if err != nil {
+		cs.logger.WithFields(loggers.Fields{
+			CodeField: codes.InvalidArgument,
+		}).Error("RESPONSE [CreateEvent]: %s", err)
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 	duration, err := ptypes.Duration(protoEvent.Duration)
 	if err != nil {
+		cs.logger.WithFields(loggers.Fields{
+			CodeField: codes.InvalidArgument,
+		}).Error("RESPONSE [CreateEvent]: %s", err)
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 	uid, err := uuid.Parse(protoEvent.UserID)
 	if err != nil {
+		cs.logger.WithFields(loggers.Fields{
+			CodeField: codes.InvalidArgument,
+		}).Error("RESPONSE [CreateEvent]: %s", err)
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
@@ -60,20 +70,31 @@ func (cs *CalendarServer) CreateEvent(ctx context.Context, req *EventRequest) (*
 	event.UserID = uid
 
 	if err := cs.calendar.AddEvent(event); err != nil {
+		cs.logger.WithFields(loggers.Fields{
+			CodeField: codes.Internal,
+		}).Error("RESPONSE [CreateEvent]: %s", err)
+		if bizErr, ok := err.(errors.EventError); ok {
+			resp := &EventResponse{
+				Result: &EventResponse_Error{
+					Error: bizErr.Error(),
+				},
+			}
+			return resp, nil
+		}
 		return nil, status.Error(codes.Internal, err.Error())
-	}
-
-	resp := &EventResponse{
-		Result: &EventResponse_Event{
-			Event: protoEvent,
-		},
 	}
 
 	cs.logger.WithFields(loggers.Fields{
 		CodeField:    codes.OK,
 		EventIDField: protoEvent.Id,
 	}).Info("RESPONSE [CreateEvent]")
-	cs.logger.Debug("Response body: %+v", resp)
+
+	resp := &EventResponse{
+		Result: &EventResponse_Event{
+			Event: protoEvent,
+		},
+	}
+	cs.logger.Debug("[CreateEvent] Response body: %+v", resp)
 
 	return resp, nil
 }
