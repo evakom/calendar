@@ -8,7 +8,6 @@
 package api
 
 import (
-	"context"
 	"github.com/evakom/calendar/internal/domain/calendar"
 	"github.com/evakom/calendar/internal/loggers"
 	"google.golang.org/grpc"
@@ -60,44 +59,4 @@ func (cs *CalendarServer) StartGRPCServer(addr string) {
 		os.Exit(1)
 	}
 	cs.logger.Info("Shutdown gRPC server at: %s", addr)
-}
-
-// CreateEvent creates event.
-func (cs *CalendarServer) CreateEvent(context.Context, *EventRequest) (*EventResponse, error) {
-	panic("CreateEvent implement me")
-}
-
-// GetEvent got one event by id.
-func (cs *CalendarServer) GetEvent(context.Context, *ID) (*EventResponse, error) {
-	panic("GetEvent implement me")
-}
-
-// GetUserEvents returns all events for given user.
-func (cs *CalendarServer) GetUserEvents(context.Context, *ID) (*EventsResponse, error) {
-	panic("GetUserEvents implement me")
-}
-
-// UpdateEvent updates event by id.
-func (cs *CalendarServer) UpdateEvent(context.Context, *EventRequest) (*EventResponse, error) {
-	panic("UpdateEvent implement me")
-}
-
-// DeleteEvent deletes event from DB.
-func (cs *CalendarServer) DeleteEvent(context.Context, *ID) (*EventResponse, error) {
-	panic("DeleteEvent implement me")
-}
-
-// GetEventsForDay returns all events for given day.
-func (cs *CalendarServer) GetEventsForDay(context.Context, *Day) (*EventsResponse, error) {
-	panic("GetEventsForDay implement me")
-}
-
-// GetEventsForWeek returns all events for given week from day.
-func (cs *CalendarServer) GetEventsForWeek(context.Context, *Day) (*EventsResponse, error) {
-	panic("GetEventsForWeek implement me")
-}
-
-// GetEventsForMonth returns all events for given month from day.
-func (cs *CalendarServer) GetEventsForMonth(context.Context, *Day) (*EventsResponse, error) {
-	panic("GetEventsForMonth implement me")
 }

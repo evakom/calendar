@@ -55,7 +55,7 @@ func main() {
 		log.Fatal(resp.GetError())
 	}
 
-	log.Println(resp.GetEvent().Id)
+	log.Println(resp.GetEvent())
 }
 
 func parseDateTime(s string) (*timestamp.Timestamp, error) {
