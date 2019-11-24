@@ -1,6 +1,6 @@
 /*
- * HomeWork-8: Calendar protobuf preparation
- * Created on 27.10.2019 12:32
+ * HomeWork-12: gRPC server
+ * Created on 24.11.2019 12:45
  * Copyright (c) 2019 - Eugene Klimov
  */
 
@@ -10,12 +10,13 @@ import (
 	"context"
 	"flag"
 	"github.com/evakom/calendar/internal/domain/calendar"
-	"github.com/evakom/calendar/internal/http"
+	"github.com/evakom/calendar/internal/grpc/api"
 	"github.com/evakom/calendar/tools"
 )
 
 func main() {
-	configFile := flag.String("config", "config.yml", "path to config file")
+
+	configFile := flag.String("config", "../../config.yml", "path to config file")
 	flag.Parse()
 
 	conf := tools.InitConfig(*configFile)
@@ -26,5 +27,6 @@ func main() {
 	db := tools.InitDB(context.TODO(), conf.DBType, conf.DSN)
 	cal := calendar.NewCalendar(db)
 
-	http.StartHTTPServer(conf.ListenHTTP, cal)
+	cs := api.NewCalendarServer(cal)
+	cs.StartGRPCServer(conf.ListenGRPC)
 }

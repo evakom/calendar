@@ -51,21 +51,25 @@ message EventResponse {
     }
 }
 
+message EventsResponse {
+    repeated Event events = 1;
+}
+
 service CalendarService {
     rpc CreateEvent (Event) returns (EventResponse) {
-    }
+    };
     rpc GetEvent (ID) returns (EventResponse) {
-    }
-    rpc GetUserEvents (ID) returns (stream Event) {
-    }
+    };
+    rpc GetUserEvents (ID) returns (EventsResponse) {
+    };
     rpc UpdateEvent (Event) returns (EventResponse) {
-    }
+    };
     rpc DeleteEvent (ID) returns (EventResponse) {
-    }
-    rpc GetEventsForDay (Day) returns (stream Event) {
-    }
-    rpc GetEventsForWeek (Day) returns (stream Event) {
-    }
-    rpc GetEventsForMonth (Day) returns (stream Event) {
-    }
+    };
+    rpc GetEventsForDay (Day) returns (EventsResponse) {
+    };
+    rpc GetEventsForWeek (Day) returns (EventsResponse) {
+    };
+    rpc GetEventsForMonth (Day) returns (EventsResponse) {
+    };
 }

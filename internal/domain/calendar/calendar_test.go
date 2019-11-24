@@ -23,7 +23,6 @@ var cal Calendar
 func init() {
 	conf := tools.InitConfig(fileConfigPath)
 	loggers.NewLogger("none", nil)
-	//models.NewLogger("debug", os.Stdout)
 	conf.DBType = "inmemory"
 	db := tools.InitDB(context.TODO(), conf.DBType, conf.DSN)
 	cal = NewCalendar(db)
