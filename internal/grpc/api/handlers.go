@@ -25,11 +25,9 @@ const (
 
 // CreateEvent creates event.
 func (cs *CalendarServer) CreateEvent(ctx context.Context, req *EventRequest) (*EventResponse, error) {
-
 	cs.logger.Info("REQUEST [CreateEvent]")
 
 	event := models.NewEvent()
-
 	protoEvent := &Event{
 		Id:       event.ID.String(),
 		OccursAt: req.GetOccursAt(),
@@ -84,6 +82,10 @@ func (cs *CalendarServer) CreateEvent(ctx context.Context, req *EventRequest) (*
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
+	if protoEvent.CreatedAt, err = ptypes.TimestampProto(event.CreatedAt); err != nil {
+		cs.logger.Error("[CreateEvent] error convert event time to proto: %s", err)
+	}
+
 	cs.logger.WithFields(loggers.Fields{
 		CodeField:    codes.OK,
 		EventIDField: protoEvent.Id,
@@ -100,8 +102,71 @@ func (cs *CalendarServer) CreateEvent(ctx context.Context, req *EventRequest) (*
 }
 
 // GetEvent got one event by id.
-func (cs *CalendarServer) GetEvent(context.Context, *ID) (*EventResponse, error) {
-	panic("GetEvent implement me")
+func (cs *CalendarServer) GetEvent(ctx context.Context, id *ID) (*EventResponse, error) {
+	cs.logger.Info("REQUEST [GetEvent]")
+
+	eid, err := uuid.Parse(id.GetId())
+	if err != nil {
+		cs.logger.WithFields(loggers.Fields{
+			CodeField: codes.InvalidArgument,
+		}).Error("RESPONSE [GetEvent]: %s", err)
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	event, err := cs.calendar.GetEvent(eid)
+	if err != nil {
+		cs.logger.WithFields(loggers.Fields{
+			CodeField: codes.Internal,
+		}).Error("RESPONSE [GetEvent]: %s", err)
+		if bizErr, ok := err.(errors.EventError); ok {
+			resp := &EventResponse{
+				Result: &EventResponse_Error{
+					Error: bizErr.Error(),
+				},
+			}
+			return resp, nil
+		}
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	createdAt, err := ptypes.TimestampProto(event.CreatedAt)
+	if err != nil {
+		cs.logger.Error("[GetEvent] error convert event create to proto: %s", err)
+	}
+	updatedAt, err := ptypes.TimestampProto(event.UpdatedAt)
+	if err != nil {
+		cs.logger.Error("[GetEvent] error convert event update to proto: %s", err)
+	}
+	occursAt, err := ptypes.TimestampProto(event.OccursAt)
+	if err != nil {
+		cs.logger.Error("[GetEvent] error convert event occurs to proto: %s", err)
+	}
+
+	protoEvent := &Event{
+		Id:        event.ID.String(),
+		CreatedAt: createdAt,
+		UpdatedAt: updatedAt,
+		OccursAt:  occursAt,
+		Subject:   event.Subject,
+		Body:      event.Body,
+		Duration:  ptypes.DurationProto(event.Duration),
+		Location:  event.Location,
+		UserID:    event.UserID.String(),
+	}
+
+	cs.logger.WithFields(loggers.Fields{
+		CodeField:    codes.OK,
+		EventIDField: protoEvent.Id,
+	}).Info("RESPONSE [GetEvent]")
+
+	resp := &EventResponse{
+		Result: &EventResponse_Event{
+			Event: protoEvent,
+		},
+	}
+	cs.logger.Debug("[GetEvent] Response body: %+v", resp)
+
+	return resp, nil
 }
 
 // GetUserEvents returns all events for given user.
