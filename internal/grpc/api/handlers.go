@@ -21,6 +21,7 @@ import (
 const (
 	CodeField    = "response_code"
 	EventIDField = "event_id"
+	UserIDField  = "user_id"
 )
 
 // CreateEvent creates event.
@@ -170,18 +171,70 @@ func (cs *CalendarServer) GetEvent(ctx context.Context, id *ID) (*EventResponse,
 }
 
 // GetUserEvents returns all events for given user.
-func (cs *CalendarServer) GetUserEvents(context.Context, *ID) (*EventsResponse, error) {
-	panic("GetUserEvents implement me")
-}
+func (cs *CalendarServer) GetUserEvents(ctx context.Context, id *ID) (*EventsResponse, error) {
+	cs.logger.Info("REQUEST [GetUserEvents]")
 
-// UpdateEvent updates event by id.
-func (cs *CalendarServer) UpdateEvent(context.Context, *EventRequest) (*EventResponse, error) {
-	panic("UpdateEvent implement me")
+	uid, err := uuid.Parse(id.GetId())
+	if err != nil {
+		cs.logger.WithFields(loggers.Fields{
+			CodeField: codes.InvalidArgument,
+		}).Error("RESPONSE [GetUserEvents]: %s", err)
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	events, err := cs.calendar.GetAllEventsFilter(models.Event{UserID: uid})
+	if err != nil {
+		cs.logger.WithFields(loggers.Fields{
+			CodeField: codes.Internal,
+		}).Error("RESPONSE [GetUserEvents]: %s", err)
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	protoEvents := make([]*Event, 0)
+
+	for _, event := range events {
+		createdAt, err := ptypes.TimestampProto(event.CreatedAt)
+		if err != nil {
+			cs.logger.Error("[GetUserEvents] error convert event create to proto: %s", err)
+		}
+		updatedAt, err := ptypes.TimestampProto(event.UpdatedAt)
+		if err != nil {
+			cs.logger.Error("[GetUserEvents] error convert event update to proto: %s", err)
+		}
+		occursAt, err := ptypes.TimestampProto(event.OccursAt)
+		if err != nil {
+			cs.logger.Error("[GetUserEvents] error convert event occurs to proto: %s", err)
+		}
+		protoEvent := &Event{
+			Id:        event.ID.String(),
+			CreatedAt: createdAt,
+			UpdatedAt: updatedAt,
+			OccursAt:  occursAt,
+			Subject:   event.Subject,
+			Body:      event.Body,
+			Duration:  ptypes.DurationProto(event.Duration),
+			Location:  event.Location,
+			UserID:    event.UserID.String(),
+		}
+		protoEvents = append(protoEvents, protoEvent)
+	}
+
+	cs.logger.WithFields(loggers.Fields{
+		CodeField:   codes.OK,
+		UserIDField: id.GetId(),
+	}).Info("RESPONSE [GetUserEvents]")
+
+	return &EventsResponse{Events: protoEvents}, nil
 }
 
 // DeleteEvent deletes event from DB.
 func (cs *CalendarServer) DeleteEvent(context.Context, *ID) (*EventResponse, error) {
 	panic("DeleteEvent implement me")
+}
+
+// UpdateEvent updates event by id.
+func (cs *CalendarServer) UpdateEvent(context.Context, *EventRequest) (*EventResponse, error) {
+	panic("UpdateEvent implement me")
 }
 
 // GetEventsForDay returns all events for given day.
