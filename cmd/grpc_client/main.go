@@ -45,6 +45,7 @@ func init() {
 			"[-occurs_at 'date time'] [-duration duration] "+
 			"[-subject 'subject'] [-body 'body'] [-location 'location']\n", fileName)
 		fmt.Printf("Get event:          %s -method get_event -event_id uuid\n", fileName)
+		fmt.Printf("Delete event:       %s -method del_event -event_id uuid\n", fileName)
 		fmt.Printf("Get user events:    %s -method get_user_events -user_id uuid\n", fileName)
 		flag.PrintDefaults()
 	}
@@ -107,6 +108,12 @@ func main() {
 			break
 		}
 		resp, err = client.GetEvent(ctx, eId)
+	case "del_event":
+		if eid == "" || eid == uuid.Nil.String() {
+			needUsage = true
+			break
+		}
+		resp, err = client.DeleteEvent(ctx, eId)
 	case "get_user_events":
 		if uid == "" || uid == uuid.Nil.String() {
 			needUsage = true

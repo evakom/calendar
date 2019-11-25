@@ -228,8 +228,47 @@ func (cs *CalendarServer) GetUserEvents(ctx context.Context, id *ID) (*EventsRes
 }
 
 // DeleteEvent deletes event from DB.
-func (cs *CalendarServer) DeleteEvent(context.Context, *ID) (*EventResponse, error) {
-	panic("DeleteEvent implement me")
+func (cs *CalendarServer) DeleteEvent(ctx context.Context, id *ID) (*EventResponse, error) {
+	cs.logger.Info("REQUEST [DeleteEvent]")
+
+	eid, err := uuid.Parse(id.GetId())
+	if err != nil {
+		cs.logger.WithFields(loggers.Fields{
+			CodeField: codes.InvalidArgument,
+		}).Error("RESPONSE [DeleteEvent]: %s", err)
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	if err := cs.calendar.DelEvent(eid); err != nil {
+		cs.logger.WithFields(loggers.Fields{
+			CodeField: codes.Internal,
+		}).Error("RESPONSE [DeleteEvent]: %s", err)
+		if bizErr, ok := err.(errors.EventError); ok {
+			resp := &EventResponse{
+				Result: &EventResponse_Error{
+					Error: bizErr.Error(),
+				},
+			}
+			return resp, nil
+		}
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	protoEvent := &Event{Id: id.GetId()}
+
+	cs.logger.WithFields(loggers.Fields{
+		CodeField:    codes.OK,
+		EventIDField: protoEvent.Id,
+	}).Info("RESPONSE [DeleteEvent]")
+
+	resp := &EventResponse{
+		Result: &EventResponse_Event{
+			Event: protoEvent,
+		},
+	}
+	cs.logger.Debug("[DeleteEvent] Response body: %+v", resp)
+
+	return resp, nil
 }
 
 // UpdateEvent updates event by id.

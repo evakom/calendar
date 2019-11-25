@@ -111,7 +111,6 @@ func (db *DBPostgresEvents) DelEventDB(id uuid.UUID) error {
 
 	db.logger.WithFields(loggers.Fields{
 		EventIDField: id.String(),
-		UserIDField:  event.UserID.String(),
 	}).Info("Event deleted from postgres DB")
 	db.logger.Debug("Event body deleted from postgres DB: %+v", event)
 	return nil
