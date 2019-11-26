@@ -70,7 +70,7 @@ func (cs *CalendarServer) CreateEvent(ctx context.Context, req *EventRequest) (*
 	event.Location = protoEvent.Location
 	event.UserID = uid
 
-	if err := cs.calendar.AddEvent(event); err != nil {
+	if err := cs.calendar.AddEvent(ctx, event); err != nil {
 		cs.logger.WithFields(loggers.Fields{
 			CodeField: codes.Internal,
 		}).Error("RESPONSE [CreateEvent]: %s", err)
@@ -119,7 +119,7 @@ func (cs *CalendarServer) GetEvent(ctx context.Context, id *ID) (*EventResponse,
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	event, err := cs.calendar.GetEvent(eid)
+	event, err := cs.calendar.GetEvent(ctx, eid)
 	if err != nil {
 		cs.logger.WithFields(loggers.Fields{
 			CodeField: codes.Internal,
@@ -190,7 +190,7 @@ func (cs *CalendarServer) GetUserEvents(ctx context.Context, id *ID) (*EventsRes
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	events, err := cs.calendar.GetAllEventsFilter(models.Event{UserID: uid})
+	events, err := cs.calendar.GetAllEventsFilter(ctx, models.Event{UserID: uid})
 	if err != nil {
 		cs.logger.WithFields(loggers.Fields{
 			CodeField: codes.Internal,
@@ -249,7 +249,7 @@ func (cs *CalendarServer) DeleteEvent(ctx context.Context, id *ID) (*EventRespon
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	if err := cs.calendar.DelEvent(eid); err != nil {
+	if err := cs.calendar.DelEvent(ctx, eid); err != nil {
 		cs.logger.WithFields(loggers.Fields{
 			CodeField: codes.Internal,
 		}).Error("RESPONSE [DeleteEvent]: %s", err)
