@@ -26,7 +26,9 @@ const (
 
 // CreateEvent creates event.
 func (cs *CalendarServer) CreateEvent(ctx context.Context, req *EventRequest) (*EventResponse, error) {
-	cs.logger.Info("REQUEST [CreateEvent]")
+	cs.logger.WithFields(loggers.Fields{
+		UserIDField: req.GetUserID(),
+	}).Info("REQUEST [CreateEvent]")
 
 	event := models.NewEvent()
 	protoEvent := &Event{
@@ -90,6 +92,7 @@ func (cs *CalendarServer) CreateEvent(ctx context.Context, req *EventRequest) (*
 	cs.logger.WithFields(loggers.Fields{
 		CodeField:    codes.OK,
 		EventIDField: protoEvent.Id,
+		UserIDField:  protoEvent.UserID,
 	}).Info("RESPONSE [CreateEvent]")
 
 	resp := &EventResponse{
@@ -104,7 +107,9 @@ func (cs *CalendarServer) CreateEvent(ctx context.Context, req *EventRequest) (*
 
 // GetEvent got one event by id.
 func (cs *CalendarServer) GetEvent(ctx context.Context, id *ID) (*EventResponse, error) {
-	cs.logger.Info("REQUEST [GetEvent]")
+	cs.logger.WithFields(loggers.Fields{
+		EventIDField: id.GetId(),
+	}).Info("REQUEST [GetEvent]")
 
 	eid, err := uuid.Parse(id.GetId())
 	if err != nil {
@@ -158,6 +163,7 @@ func (cs *CalendarServer) GetEvent(ctx context.Context, id *ID) (*EventResponse,
 	cs.logger.WithFields(loggers.Fields{
 		CodeField:    codes.OK,
 		EventIDField: protoEvent.Id,
+		UserIDField:  protoEvent.UserID,
 	}).Info("RESPONSE [GetEvent]")
 
 	resp := &EventResponse{
@@ -172,7 +178,9 @@ func (cs *CalendarServer) GetEvent(ctx context.Context, id *ID) (*EventResponse,
 
 // GetUserEvents returns all events for given user.
 func (cs *CalendarServer) GetUserEvents(ctx context.Context, id *ID) (*EventsResponse, error) {
-	cs.logger.Info("REQUEST [GetUserEvents]")
+	cs.logger.WithFields(loggers.Fields{
+		UserIDField: id.GetId(),
+	}).Info("REQUEST [GetUserEvents]")
 
 	uid, err := uuid.Parse(id.GetId())
 	if err != nil {
@@ -229,7 +237,9 @@ func (cs *CalendarServer) GetUserEvents(ctx context.Context, id *ID) (*EventsRes
 
 // DeleteEvent deletes event from DB.
 func (cs *CalendarServer) DeleteEvent(ctx context.Context, id *ID) (*EventResponse, error) {
-	cs.logger.Info("REQUEST [DeleteEvent]")
+	cs.logger.WithFields(loggers.Fields{
+		EventIDField: id.GetId(),
+	}).Info("REQUEST [DeleteEvent]")
 
 	eid, err := uuid.Parse(id.GetId())
 	if err != nil {
