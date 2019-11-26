@@ -28,15 +28,24 @@ const (
 	EventsTable  = "events"
 )
 
-// DBPostgresEvents is the base struct for using map db.
-type DBPostgresEvents struct {
+// DBPostgres is the base struct for using map db.
+type DBPostgres struct {
 	db     *sqlx.DB
 	ctx    context.Context
 	logger loggers.Logger
 }
 
+// CloseDB closes storage
+func (db *DBPostgres) CloseDB() error {
+	if err := db.db.Close(); err != nil {
+		return err
+	}
+	db.logger.Info("Closed postgres DB")
+	return nil
+}
+
 // NewPostgresDB returns new postgres db struct.
-func NewPostgresDB(ctx context.Context, dsn string) (*DBPostgresEvents, error) {
+func NewPostgresDB(ctx context.Context, dsn string) (*DBPostgres, error) {
 	db, err := sqlx.Open("pgx", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("error open db: %w", err)
@@ -45,7 +54,7 @@ func NewPostgresDB(ctx context.Context, dsn string) (*DBPostgresEvents, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error ping db: %w", err)
 	}
-	dbPg := &DBPostgresEvents{
+	dbPg := &DBPostgres{
 		db:     db,
 		ctx:    ctx,
 		logger: loggers.GetLogger(),
@@ -55,7 +64,7 @@ func NewPostgresDB(ctx context.Context, dsn string) (*DBPostgresEvents, error) {
 }
 
 // AddEventDB adds event to postgres db.
-func (db *DBPostgresEvents) AddEventDB(event models.Event) error {
+func (db *DBPostgres) AddEventDB(event models.Event) error {
 	query := "insert into " + EventsTable + " (id, createdat, updatedat, deletedat, occursat, " +
 		"subject, body, duration, location, userid) " +
 		"values(:id, :createdat, :updatedat, :deletedat, :occursat, " +
@@ -64,7 +73,6 @@ func (db *DBPostgresEvents) AddEventDB(event models.Event) error {
 	if err != nil {
 		db.logger.Error("[AddEventDB][NamedExecContext]: %s", err)
 		return errors.ErrEventAlreadyExists
-		//return fmt.Errorf("error execute adding event into DB")
 	}
 
 	ra, err := result.RowsAffected()
@@ -86,7 +94,7 @@ func (db *DBPostgresEvents) AddEventDB(event models.Event) error {
 }
 
 // DelEventDB deletes one event by id.
-func (db *DBPostgresEvents) DelEventDB(id uuid.UUID) error {
+func (db *DBPostgres) DelEventDB(id uuid.UUID) error {
 	event := models.Event{
 		ID:        id,
 		DeletedAt: time.Now(),
@@ -117,7 +125,7 @@ func (db *DBPostgresEvents) DelEventDB(id uuid.UUID) error {
 }
 
 // EditEventDB updates one event.
-func (db *DBPostgresEvents) EditEventDB(event models.Event) error {
+func (db *DBPostgres) EditEventDB(event models.Event) error {
 	eventNew := models.Event{
 		ID:        event.ID,
 		UpdatedAt: time.Now(),
@@ -159,7 +167,7 @@ func (db *DBPostgresEvents) EditEventDB(event models.Event) error {
 }
 
 // GetOneEventDB returns one event by id.
-func (db *DBPostgresEvents) GetOneEventDB(id uuid.UUID) (models.Event, error) {
+func (db *DBPostgres) GetOneEventDB(id uuid.UUID) (models.Event, error) {
 	event := models.Event{ID: id}
 	query := "select * from " + EventsTable + " where id=:id and deletedat =:deletedat"
 
@@ -191,7 +199,7 @@ func (db *DBPostgresEvents) GetOneEventDB(id uuid.UUID) (models.Event, error) {
 }
 
 // GetAllEventsDB return all events slice for given user id (no deleted).
-func (db *DBPostgresEvents) GetAllEventsDB(id uuid.UUID) []models.Event {
+func (db *DBPostgres) GetAllEventsDB(id uuid.UUID) []models.Event {
 	events := make([]models.Event, 0)
 	event := models.Event{UserID: id}
 	query := "select * from " + EventsTable + " where userid=:userid and deletedat =:deletedat"
@@ -221,7 +229,7 @@ func (db *DBPostgresEvents) GetAllEventsDB(id uuid.UUID) []models.Event {
 }
 
 // CleanEventsDB cleans db and deletes all events in the db for given user id (no restoring!).
-func (db *DBPostgresEvents) CleanEventsDB(id uuid.UUID) error {
+func (db *DBPostgres) CleanEventsDB(id uuid.UUID) error {
 	event := models.Event{UserID: id}
 
 	uid := ""
@@ -253,7 +261,7 @@ func (db *DBPostgresEvents) CleanEventsDB(id uuid.UUID) error {
 }
 
 // GetAllEventsDBDays returns events for num of the days for given user
-func (db *DBPostgresEvents) GetAllEventsDBDays(filter models.Event) []models.Event {
+func (db *DBPostgres) GetAllEventsDBDays(filter models.Event) []models.Event {
 	events := make([]models.Event, 0)
 	event := models.Event{
 		UserID:   filter.UserID,

@@ -144,7 +144,7 @@ func (db *DBMapEvents) CleanEventsDB(id uuid.UUID) error {
 	return nil
 }
 
-// GetAllEventsDBDays returns events for num of the days for given user
+// GetAllEventsDBDays returns events for num of the days for given user.
 func (db *DBMapEvents) GetAllEventsDBDays(filter models.Event) []models.Event {
 	events := make([]models.Event, 0, len(db.events))
 	occursEnd := filter.OccursAt.Add(filter.Duration)
@@ -162,4 +162,10 @@ func (db *DBMapEvents) GetAllEventsDBDays(filter models.Event) []models.Event {
 		DeltaField: filter.Duration,
 	}).Info("All events [%d] for day(s) with delta got from map DB", len(events))
 	return events
+}
+
+// CloseDB closes storage.
+func (db *DBMapEvents) CloseDB() error {
+	db.logger.Info("Closed map DB")
+	return nil
 }

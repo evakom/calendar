@@ -21,4 +21,5 @@ type DB interface {
 	GetAllEventsDB(uuid.UUID) []models.Event
 	CleanEventsDB(uuid.UUID) error
 	GetAllEventsDBDays(models.Event) []models.Event
+	CloseDB() error
 }
