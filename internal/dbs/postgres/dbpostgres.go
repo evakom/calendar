@@ -178,13 +178,12 @@ func (db *DBPostgres) GetOneEventDB(id uuid.UUID) (models.Event, error) {
 		return event, fmt.Errorf("error execute get one event from DB")
 	}
 
-	if rows.Next() {
-		if err := rows.StructScan(&event); err != nil {
-			db.logger.Error("[GetOneEventDB][StructScan]: %s", err)
-			return event, fmt.Errorf("error scan DB row to event")
-		}
-	} else {
+	if !rows.Next() {
 		return event, errors.ErrEventNotFound
+	}
+	if err := rows.StructScan(&event); err != nil {
+		db.logger.Error("[GetOneEventDB][StructScan]: %s", err)
+		return event, fmt.Errorf("error scan DB row to event")
 	}
 
 	db.logger.WithFields(loggers.Fields{
