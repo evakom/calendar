@@ -65,10 +65,10 @@ func NewPostgresDB(ctx context.Context, dsn string) (*DBPostgres, error) {
 
 // AddEventDB adds event to postgres db.
 func (db *DBPostgres) AddEventDB(event models.Event) error {
-	query := "insert into " + EventsTable + " (id, createdat, updatedat, deletedat, occursat, " +
-		"subject, body, duration, location, userid) " +
-		"values(:id, :createdat, :updatedat, :deletedat, :occursat, " +
-		":subject, :body, :duration, :location, :userid)"
+	query := fmt.Sprintf(`insert into %s 
+		(id, createdat, updatedat, deletedat, occursat, subject, body, duration, location, userid) 
+		values(:id, :createdat, :updatedat, :deletedat, :occursat, :subject, :body, :duration, :location, :userid)`,
+		EventsTable)
 	result, err := db.db.NamedExecContext(db.ctx, query, event)
 	if err != nil {
 		db.logger.Error("[AddEventDB][NamedExecContext]: %s", err)
@@ -99,7 +99,7 @@ func (db *DBPostgres) DelEventDB(id uuid.UUID) error {
 		ID:        id,
 		DeletedAt: time.Now(),
 	}
-	query := "update " + EventsTable + " set deletedat=:deletedat where id=:id"
+	query := fmt.Sprintf("update %s set deletedat=:deletedat where id=:id", EventsTable)
 
 	result, err := db.db.NamedExecContext(db.ctx, query, event)
 	if err != nil {
@@ -136,10 +136,11 @@ func (db *DBPostgres) EditEventDB(event models.Event) error {
 		Location:  event.Location,
 		UserID:    event.UserID,
 	}
-	query := "update " + EventsTable + " set updatedat=:updatedat, " +
-		"occursat=:occursat, subject=:subject, body=:body, " +
-		"duration=:duration, location=:location " +
-		"where id=:id and deletedat =:deletedat"
+	query := fmt.Sprintf(`update %s 
+		set updatedat=:updatedat, occursat=:occursat, 
+		subject=:subject, body=:body, duration=:duration, 
+		location=:location where id=:id and deletedat =:deletedat`,
+		EventsTable)
 
 	result, err := db.db.NamedExecContext(db.ctx, query, eventNew)
 	if err != nil {
@@ -169,7 +170,7 @@ func (db *DBPostgres) EditEventDB(event models.Event) error {
 // GetOneEventDB returns one event by id.
 func (db *DBPostgres) GetOneEventDB(id uuid.UUID) (models.Event, error) {
 	event := models.Event{ID: id}
-	query := "select * from " + EventsTable + " where id=:id and deletedat =:deletedat"
+	query := fmt.Sprintf("select * from %s where id=:id and deletedat =:deletedat", EventsTable)
 
 	rows, err := db.db.NamedQueryContext(db.ctx, query, event)
 	if err != nil {
@@ -202,7 +203,7 @@ func (db *DBPostgres) GetOneEventDB(id uuid.UUID) (models.Event, error) {
 func (db *DBPostgres) GetAllEventsDB(id uuid.UUID) []models.Event {
 	events := make([]models.Event, 0)
 	event := models.Event{UserID: id}
-	query := "select * from " + EventsTable + " where userid=:userid and deletedat =:deletedat"
+	query := fmt.Sprintf("select * from %s where userid=:userid and deletedat =:deletedat", EventsTable)
 
 	rows, err := db.db.NamedQueryContext(db.ctx, query, event)
 	if err != nil {
@@ -236,7 +237,7 @@ func (db *DBPostgres) CleanEventsDB(id uuid.UUID) error {
 	if id != uuid.Nil {
 		uid = " where userid=:userid"
 	}
-	query := "delete from " + EventsTable + uid
+	query := fmt.Sprintf("delete from %s %s", EventsTable, uid)
 
 	result, err := db.db.NamedExecContext(db.ctx, query, event)
 	if err != nil {
@@ -275,8 +276,9 @@ func (db *DBPostgres) GetAllEventsDBDays(filter models.Event) []models.Event {
 		uid = "userid=:userid and"
 	}
 
-	query := "select * from " + EventsTable + " where " + uid +
-		" deletedat =:deletedat and occursat>=:occursat and occursat<:updatedat"
+	query := fmt.Sprintf(`select * from %s where %s 
+		deletedat =:deletedat and occursat>=:occursat and occursat<:updatedat`,
+		EventsTable, uid)
 
 	rows, err := db.db.NamedQueryContext(db.ctx, query, event)
 	if err != nil {
