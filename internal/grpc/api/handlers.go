@@ -282,8 +282,88 @@ func (cs *CalendarServer) DeleteEvent(ctx context.Context, id *ID) (*EventRespon
 }
 
 // UpdateEvent updates event by id.
-func (cs *CalendarServer) UpdateEvent(context.Context, *EventRequest) (*EventResponse, error) {
-	panic("UpdateEvent implement me")
+func (cs *CalendarServer) UpdateEvent(ctx context.Context, req *EventRequest) (*EventResponse, error) {
+	cs.logger.WithFields(loggers.Fields{
+		EventIDField: req.GetID(),
+	}).Info("REQUEST [UpdateEvent]")
+
+	protoEvent := &Event{
+		Id:       req.GetID(),
+		OccursAt: req.GetOccursAt(),
+		Subject:  req.GetSubject(),
+		Body:     req.GetBody(),
+		Duration: req.GetDuration(),
+		Location: req.GetLocation(),
+	}
+
+	id, err := uuid.Parse(req.GetID())
+	if err != nil {
+		cs.logger.WithFields(loggers.Fields{
+			CodeField: codes.InvalidArgument,
+		}).Error("RESPONSE [UpdateEvent]: %s", err)
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+	occursAt, err := ptypes.Timestamp(protoEvent.OccursAt)
+	if err != nil {
+		cs.logger.WithFields(loggers.Fields{
+			CodeField: codes.InvalidArgument,
+		}).Error("RESPONSE [UpdateEvent]: %s", err)
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+	duration, err := ptypes.Duration(protoEvent.Duration)
+	if err != nil {
+		cs.logger.WithFields(loggers.Fields{
+			CodeField: codes.InvalidArgument,
+		}).Error("RESPONSE [UpdateEvent]: %s", err)
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	event := models.Event{
+		ID:       id,
+		OccursAt: occursAt,
+		Subject:  protoEvent.Subject,
+		Body:     protoEvent.Body,
+		Duration: duration,
+		Location: protoEvent.Location,
+	}
+
+	eventNew, err := cs.calendar.UpdateEventFromEvent(ctx, event)
+	if err != nil {
+		cs.logger.WithFields(loggers.Fields{
+			CodeField:    codes.Internal,
+			EventIDField: protoEvent.Id,
+		}).Error("RESPONSE [UpdateEvent]: %s", err)
+		if bizErr, ok := err.(errors.EventError); ok {
+			resp := &EventResponse{
+				Result: &EventResponse_Error{
+					Error: bizErr.Error(),
+				},
+			}
+			return resp, nil
+		}
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	cs.logger.WithFields(loggers.Fields{
+		CodeField:    codes.OK,
+		EventIDField: eventNew.ID.String(),
+		UserIDField:  eventNew.UserID.String(),
+	}).Info("RESPONSE [UpdateEvent]")
+
+	updatedAt, err := ptypes.TimestampProto(eventNew.UpdatedAt)
+	if err != nil {
+		cs.logger.Error("[UpdateEvent] error convert event update to proto: %s", err)
+	}
+	protoEvent.UpdatedAt = updatedAt
+
+	resp := &EventResponse{
+		Result: &EventResponse_Event{
+			Event: protoEvent,
+		},
+	}
+	cs.logger.Debug("[UpdateEvent] Response body: %+v", resp)
+
+	return resp, nil
 }
 
 // GetEventsForDay returns all events for given day.
