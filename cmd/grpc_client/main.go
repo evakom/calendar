@@ -14,7 +14,6 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/golang/protobuf/ptypes/timestamp"
-	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"log"
 	"os"
@@ -62,8 +61,8 @@ func init() {
 
 	flag.StringVar(&server, "server", "localhost:50051", "server host:port")
 	flag.StringVar(&method, "method", "get_event", "call method")
-	flag.StringVar(&uid, "user_id", uuid.Nil.String(), "owner uuid")
-	flag.StringVar(&eid, "event_id", uuid.Nil.String(), "event uuid")
+	flag.StringVar(&uid, "user_id", "", "owner uuid")
+	flag.StringVar(&eid, "event_id", "", "event uuid")
 	flag.StringVar(&occursAt, "occurs_at", time.Time{}.Format(tsLayout),
 		"date and time when event occurs")
 	flag.StringVar(&duras, "duration", "0", "event duration (sec, min, hours)")
@@ -106,59 +105,32 @@ func main() {
 		UserID:   uid,
 	}
 
-	eId := &api.ID{Id: eid}
-	uId := &api.ID{Id: uid}
+	eID := &api.ID{Id: eid}
+	uID := &api.ID{Id: uid}
 	resp := &api.EventResponse{}
 	resps := &api.EventsResponse{}
 	day := &api.Day{Day: start}
 	ctx := context.TODO()
-	needUsage := false
 
 	switch method {
 	case "create_event":
-		if uid == "" || uid == uuid.Nil.String() {
-			needUsage = true
-			break
-		}
 		resp, err = client.CreateEvent(ctx, req)
 	case "update_event":
-		if eid == "" || eid == uuid.Nil.String() {
-			needUsage = true
-			break
-		}
 		resp, err = client.UpdateEvent(ctx, req)
 	case "get_event":
-		if eid == "" || eid == uuid.Nil.String() {
-			needUsage = true
-			break
-		}
-		resp, err = client.GetEvent(ctx, eId)
+		resp, err = client.GetEvent(ctx, eID)
 	case "del_event":
-		if eid == "" || eid == uuid.Nil.String() {
-			needUsage = true
-			break
-		}
-		resp, err = client.DeleteEvent(ctx, eId)
+		resp, err = client.DeleteEvent(ctx, eID)
 	case "get_user_events":
-		if uid == "" || uid == uuid.Nil.String() {
-			needUsage = true
-			break
-		}
-		resps, err = client.GetUserEvents(ctx, uId)
+		resps, err = client.GetUserEvents(ctx, uID)
 	case "get_events_day":
 		resps, err = client.GetEventsForDay(ctx, day)
 	case "get_events_week":
 		resps, err = client.GetEventsForWeek(ctx, day)
 	case "get_events_month":
 		resps, err = client.GetEventsForMonth(ctx, day)
-	default:
-		needUsage = true
 	}
 
-	if needUsage {
-		flag.Usage()
-		os.Exit(2)
-	}
 	if err != nil {
 		log.Fatal(err)
 	}

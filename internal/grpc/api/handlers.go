@@ -27,6 +27,13 @@ const (
 	DurationField = "duration"
 )
 
+const (
+	methodKey   contextKey = "method"
+	durationKey contextKey = "duration"
+)
+
+type contextKey string
+
 // CreateEvent creates event.
 func (cs *CalendarServer) CreateEvent(ctx context.Context, req *EventRequest) (*EventResponse, error) {
 	cs.logger.WithFields(loggers.Fields{
@@ -344,22 +351,22 @@ func (cs *CalendarServer) UpdateEvent(ctx context.Context, req *EventRequest) (*
 
 // GetEventsForDay returns all events for given day.
 func (cs *CalendarServer) GetEventsForDay(ctx context.Context, startDay *Day) (*EventsResponse, error) {
-	ctx = context.WithValue(ctx, "method", "GetEventsForDay")
-	ctx = context.WithValue(ctx, "duration", 24*time.Hour)
+	ctx = context.WithValue(ctx, methodKey, "GetEventsForDay")
+	ctx = context.WithValue(ctx, durationKey, 24*time.Hour)
 	return cs.getEventsForDays(ctx, startDay)
 }
 
 // GetEventsForWeek returns all events for given week from day.
 func (cs *CalendarServer) GetEventsForWeek(ctx context.Context, startDay *Day) (*EventsResponse, error) {
-	ctx = context.WithValue(ctx, "method", "GetEventsForWeek")
-	ctx = context.WithValue(ctx, "duration", 24*time.Hour*7)
+	ctx = context.WithValue(ctx, methodKey, "GetEventsForWeek")
+	ctx = context.WithValue(ctx, durationKey, 24*time.Hour*7)
 	return cs.getEventsForDays(ctx, startDay)
 }
 
 // GetEventsForMonth returns all events for given month from day.
 func (cs *CalendarServer) GetEventsForMonth(ctx context.Context, startDay *Day) (*EventsResponse, error) {
-	ctx = context.WithValue(ctx, "method", "GetEventsForMonth")
-	ctx = context.WithValue(ctx, "duration", 24*time.Hour*30)
+	ctx = context.WithValue(ctx, methodKey, "GetEventsForMonth")
+	ctx = context.WithValue(ctx, durationKey, 24*time.Hour*30)
 	return cs.getEventsForDays(ctx, startDay)
 }
 
@@ -397,8 +404,8 @@ func (cs *CalendarServer) events2ProtoEvents(events []models.Event) []*Event {
 
 func (cs *CalendarServer) getEventsForDays(ctx context.Context, startDay *Day) (*EventsResponse, error) {
 
-	methodName := ctx.Value("method")
-	duration := ctx.Value("duration").(time.Duration)
+	methodName := ctx.Value(methodKey)
+	duration := ctx.Value(durationKey).(time.Duration)
 
 	cs.logger.WithFields(loggers.Fields{
 		DayField:      ptypes.TimestampString(startDay.Day),
