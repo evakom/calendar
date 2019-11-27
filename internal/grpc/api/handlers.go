@@ -20,12 +20,11 @@ import (
 
 // Constants
 const (
-	CodeField    = "response_code"
-	EventIDField = "event_id"
-	UserIDField  = "user_id"
-	DayField     = "day"
-	WeekField    = "week"
-	MonthField   = "month"
+	CodeField     = "response_code"
+	EventIDField  = "event_id"
+	UserIDField   = "user_id"
+	DayField      = "day"
+	DurationField = "duration"
 )
 
 // CreateEvent creates event.
@@ -344,50 +343,24 @@ func (cs *CalendarServer) UpdateEvent(ctx context.Context, req *EventRequest) (*
 }
 
 // GetEventsForDay returns all events for given day.
-func (cs *CalendarServer) GetEventsForDay(ctx context.Context, day *Day) (*EventsResponse, error) {
-	cs.logger.WithFields(loggers.Fields{
-		DayField: ptypes.TimestampString(day.Day),
-	}).Info("REQUEST [GetEventsForDay]")
-
-	d, err := ptypes.Timestamp(day.Day)
-	if err != nil {
-		cs.logger.WithFields(loggers.Fields{
-			CodeField: codes.InvalidArgument,
-		}).Error("RESPONSE [GetEventsForDay]: %s", err)
-		return nil, status.Error(codes.InvalidArgument, err.Error())
-	}
-
-	events, err := cs.calendar.GetAllEventsFilter(ctx, models.Event{
-		OccursAt: d,
-		Duration: 24 * time.Hour,
-	})
-	if err != nil {
-		cs.logger.WithFields(loggers.Fields{
-			CodeField: codes.Internal,
-		}).Error("RESPONSE [GetEventsForDay]: %s", err)
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
-	protoEvents := cs.events2ProtoEvents(events)
-
-	cs.logger.WithFields(loggers.Fields{
-		CodeField: codes.OK,
-		DayField:  ptypes.TimestampString(day.Day),
-	}).Info("RESPONSE [GetEventsForDay]")
-
-	return &EventsResponse{Events: protoEvents}, nil
+func (cs *CalendarServer) GetEventsForDay(ctx context.Context, startDay *Day) (*EventsResponse, error) {
+	ctx = context.WithValue(ctx, "method", "GetEventsForDay")
+	ctx = context.WithValue(ctx, "duration", 24*time.Hour)
+	return cs.getEventsForDays(ctx, startDay)
 }
 
 // GetEventsForWeek returns all events for given week from day.
-func (cs *CalendarServer) GetEventsForWeek(ctx context.Context, day *Day) (*EventsResponse, error) {
-
-	return &EventsResponse{}, nil
+func (cs *CalendarServer) GetEventsForWeek(ctx context.Context, startDay *Day) (*EventsResponse, error) {
+	ctx = context.WithValue(ctx, "method", "GetEventsForWeek")
+	ctx = context.WithValue(ctx, "duration", 24*time.Hour*7)
+	return cs.getEventsForDays(ctx, startDay)
 }
 
 // GetEventsForMonth returns all events for given month from day.
-func (cs *CalendarServer) GetEventsForMonth(ctx context.Context, day *Day) (*EventsResponse, error) {
-
-	return &EventsResponse{}, nil
+func (cs *CalendarServer) GetEventsForMonth(ctx context.Context, startDay *Day) (*EventsResponse, error) {
+	ctx = context.WithValue(ctx, "method", "GetEventsForMonth")
+	ctx = context.WithValue(ctx, "duration", 24*time.Hour*30)
+	return cs.getEventsForDays(ctx, startDay)
 }
 
 func (cs *CalendarServer) events2ProtoEvents(events []models.Event) []*Event {
@@ -420,4 +393,43 @@ func (cs *CalendarServer) events2ProtoEvents(events []models.Event) []*Event {
 		protoEvents = append(protoEvents, protoEvent)
 	}
 	return protoEvents
+}
+
+func (cs *CalendarServer) getEventsForDays(ctx context.Context, startDay *Day) (*EventsResponse, error) {
+
+	methodName := ctx.Value("method")
+	duration := ctx.Value("duration").(time.Duration)
+
+	cs.logger.WithFields(loggers.Fields{
+		DayField:      ptypes.TimestampString(startDay.Day),
+		DurationField: duration,
+	}).Info("REQUEST [%s]", methodName)
+
+	d, err := ptypes.Timestamp(startDay.Day)
+	if err != nil {
+		cs.logger.WithFields(loggers.Fields{
+			CodeField: codes.InvalidArgument,
+		}).Error("RESPONSE [%s]: %s", methodName, err)
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	events, err := cs.calendar.GetAllEventsFilter(ctx, models.Event{
+		OccursAt: d,
+		Duration: duration,
+	})
+	if err != nil {
+		cs.logger.WithFields(loggers.Fields{
+			CodeField: codes.Internal,
+		}).Error("RESPONSE [%s]: %s", methodName, err)
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	protoEvents := cs.events2ProtoEvents(events)
+
+	cs.logger.WithFields(loggers.Fields{
+		CodeField: codes.OK,
+		DayField:  ptypes.TimestampString(startDay.Day),
+	}).Info("RESPONSE [%s]", methodName)
+
+	return &EventsResponse{Events: protoEvents}, nil
 }
