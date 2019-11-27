@@ -22,7 +22,10 @@ import (
 	"time"
 )
 
-const tsLayout = "2006-01-02 15:04:05"
+const (
+	tsLayout  = "2006-01-02 15:04:05"
+	dayLayout = "2006-01-02"
+)
 
 var (
 	server   string
@@ -34,6 +37,7 @@ var (
 	subject  string
 	body     string
 	location string
+	startDay string
 )
 
 func init() {
@@ -41,15 +45,18 @@ func init() {
 	fileName := filepath.Base(os.Args[0])
 	flag.Usage = func() {
 		fmt.Printf("Call server on custom host:port: %s -server host:port -method ...\n", fileName)
-		fmt.Printf("Create event:       %s -method create_event -user_id uuid "+
+		fmt.Printf("Create event:         %s -method create_event -user_id uuid "+
 			"[-occurs_at 'date time'] [-duration duration] "+
 			"[-subject 'subject'] [-body 'body'] [-location 'location']\n", fileName)
-		fmt.Printf("Update event:       %s -method update_event -event_id uuid "+
+		fmt.Printf("Update event:         %s -method update_event -event_id uuid "+
 			"[-occurs_at 'date time'] [-duration duration] "+
 			"[-subject 'subject'] [-body 'body'] [-location 'location']\n", fileName)
-		fmt.Printf("Get event:          %s -method get_event -event_id uuid\n", fileName)
-		fmt.Printf("Delete event:       %s -method del_event -event_id uuid\n", fileName)
-		fmt.Printf("Get user events:    %s -method get_user_events -user_id uuid\n", fileName)
+		fmt.Printf("Get event:            %s -method get_event -event_id uuid\n", fileName)
+		fmt.Printf("Delete event:         %s -method del_event -event_id uuid\n", fileName)
+		fmt.Printf("Get user events:      %s -method get_user_events -user_id uuid\n", fileName)
+		fmt.Printf("Get events for day:   %s -method get_events_day -start_day date\n", fileName)
+		fmt.Printf("Get events for week:  %s -method get_events_week -start_day date\n", fileName)
+		fmt.Printf("Get events for month: %s -method get_events_month -start_day date\n", fileName)
 		flag.PrintDefaults()
 	}
 
@@ -63,6 +70,8 @@ func init() {
 	flag.StringVar(&subject, "subject", "", "event subject (title)")
 	flag.StringVar(&body, "body", "", "event body (description)")
 	flag.StringVar(&location, "location", "", "event location (where)")
+	flag.StringVar(&startDay, "start_day", time.Now().Format(dayLayout),
+		"start date when events will occur")
 }
 
 func main() {
@@ -74,11 +83,15 @@ func main() {
 	}
 	client := api.NewCalendarServiceClient(conn)
 
-	occurs, err := parseDateTime(occursAt)
+	occurs, err := parseDateTime(occursAt, tsLayout)
 	if err != nil {
 		log.Fatal(err)
 	}
 	durat, err := parseDuration(duras)
+	if err != nil {
+		log.Fatal(err)
+	}
+	start, err := parseDateTime(startDay, dayLayout)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -92,10 +105,12 @@ func main() {
 		Duration: durat,
 		UserID:   uid,
 	}
+
 	eId := &api.ID{Id: eid}
 	uId := &api.ID{Id: uid}
 	resp := &api.EventResponse{}
 	resps := &api.EventsResponse{}
+	day := &api.Day{Day: start}
 	ctx := context.TODO()
 	needUsage := false
 
@@ -130,6 +145,12 @@ func main() {
 			break
 		}
 		resps, err = client.GetUserEvents(ctx, uId)
+	case "get_events_day":
+		resps, err = client.GetEventsForDay(ctx, day)
+	case "get_events_week":
+		resps, err = client.GetEventsForWeek(ctx, day)
+	case "get_events_month":
+		resps, err = client.GetEventsForMonth(ctx, day)
 	default:
 		needUsage = true
 	}
@@ -157,8 +178,8 @@ func main() {
 	}
 }
 
-func parseDateTime(s string) (*timestamp.Timestamp, error) {
-	t, err := time.Parse(tsLayout, s)
+func parseDateTime(s, layout string) (*timestamp.Timestamp, error) {
+	t, err := time.Parse(layout, s)
 	if err != nil {
 		return nil, err
 	}
