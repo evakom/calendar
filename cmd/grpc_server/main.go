@@ -29,7 +29,9 @@ func main() {
 	cal := calendar.NewCalendar(db)
 
 	cs := api.NewCalendarServer(cal)
-	cs.StartGRPCServer(conf.ListenGRPC)
+	if err := cs.StartGRPCServer(conf.ListenGRPC); err != nil {
+		log.Fatal(err)
+	}
 
 	if err := db.CloseDB(); err != nil {
 		log.Println("Error close DB:", err)
