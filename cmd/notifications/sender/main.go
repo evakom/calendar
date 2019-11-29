@@ -11,6 +11,9 @@ import (
 	"flag"
 	"github.com/evakom/calendar/tools"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
@@ -29,10 +32,18 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = sender.publish("111", "222")
-	if err != nil {
-		log.Fatal(err)
-	}
+	//err = sender.publish("111", "222")
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//go func() {
+	//
+	//}()
+
+	shutdown := make(chan os.Signal)
+	signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)
+
+	sender.logger.Warn("Signal received: %s", <-shutdown)
 
 	if err := sender.close(); err != nil {
 		log.Println("Error close RabbitMQ:", err)

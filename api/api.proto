@@ -22,9 +22,8 @@ message Event {
 message User {
     string id = 1;
     string name = 2;
-    repeated string email = 3;
-    repeated string mobile = 4;
-    google.protobuf.Timestamp birthday = 5;
+    string email = 3;
+    string mobile = 4;
 }
 
 message ID {
