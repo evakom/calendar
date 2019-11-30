@@ -13,6 +13,7 @@ import (
 	"github.com/evakom/calendar/internal/domain/interfaces/storage"
 	"github.com/evakom/calendar/internal/domain/models"
 	"github.com/evakom/calendar/internal/loggers"
+	"github.com/google/uuid"
 	"github.com/streadway/amqp"
 	"os"
 	"os/signal"
@@ -24,7 +25,7 @@ const (
 	eventsQueueName  = "events"
 	eventIDField     = "event_id"
 	eventOccursField = "occurs_at"
-	eventAlertField  = "alert_before"
+	eventAlertField  = "alert_every"
 )
 
 type publisher struct {
@@ -114,6 +115,7 @@ func (p *publisher) start() {
 }
 
 func (p *publisher) worker() {
+	alerts := make(map[uuid.UUID]int64)
 OUTER:
 	for {
 		select {
@@ -125,14 +127,36 @@ OUTER:
 			if len(events) == 0 {
 				continue
 			}
+
 			for _, event := range events {
-				//if time.Now() - event.AlertBefore
+				if event.AlertEvery <= 0 {
+					p.logger.WithFields(loggers.Fields{
+						eventIDField:     event.ID.String(),
+						eventOccursField: event.OccursAt,
+						eventAlertField:  event.AlertEvery,
+					}).Warn("Alerted skipped: every time <= 0")
+					continue
+				}
+
+				if at, ok := alerts[event.ID]; ok {
+					if at+event.AlertEvery.Nanoseconds() > time.Now().UnixNano() {
+						p.logger.WithFields(loggers.Fields{
+							eventIDField:     event.ID.String(),
+							eventOccursField: event.OccursAt,
+							eventAlertField:  event.AlertEvery,
+						}).Warn("Alerted skipped: delta every time < now()")
+						continue
+					}
+				}
+
 				if err := p.publish(eventsQueueName, event); err != nil {
 					p.logger.WithFields(loggers.Fields{
 						eventIDField: event.ID.String(),
 					}).Error(err.Error())
 					continue
 				}
+				alerts[event.ID] = time.Now().UnixNano()
+
 				p.logger.WithFields(loggers.Fields{
 					eventIDField:     event.ID.String(),
 					eventOccursField: event.OccursAt,
