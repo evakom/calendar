@@ -72,14 +72,14 @@ func (p *publisher) close() error {
 	return nil
 }
 
-func (p *publisher) publish(qName string, event models.Event) error {
+func (p *publisher) publish(event models.Event) error {
 	q, err := p.ch.QueueDeclare(
-		qName, // name
-		false, // durable
-		false, // delete when unused
-		false, // exclusive
-		false, // no-wait
-		nil,   // arguments
+		eventsQueueName, // name
+		false,           // durable
+		false,           // delete when unused
+		false,           // exclusive
+		false,           // no-wait
+		nil,             // arguments
 	)
 	if err != nil {
 		return err
@@ -130,6 +130,7 @@ OUTER:
 
 			for _, event := range events {
 				if event.AlertEvery <= 0 {
+					delete(alerts, event.ID)
 					p.logger.WithFields(loggers.Fields{
 						eventIDField:     event.ID.String(),
 						eventOccursField: event.OccursAt,
@@ -149,7 +150,7 @@ OUTER:
 					}
 				}
 
-				if err := p.publish(eventsQueueName, event); err != nil {
+				if err := p.publish(event); err != nil {
 					p.logger.WithFields(loggers.Fields{
 						eventIDField: event.ID.String(),
 					}).Error(err.Error())
