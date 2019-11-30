@@ -9,7 +9,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/evakom/calendar/internal/domain/interfaces/storage"
 	"github.com/evakom/calendar/internal/domain/models"
@@ -33,6 +32,7 @@ type sender struct {
 	db     storage.DB
 	ch     *amqp.Channel
 	ctx    context.Context
+	cancel context.CancelFunc
 	logger loggers.Logger
 }
 
@@ -48,13 +48,15 @@ func newSender(db storage.DB, dsn string) (*sender, error) {
 	logger := loggers.GetLogger()
 	logger.Info("Connected to rabbit MQ")
 
-	return &sender{
+	p := &sender{
 		conn:   conn,
 		ch:     ch,
 		db:     db,
-		ctx:    context.TODO(),
 		logger: logger,
-	}, nil
+	}
+	p.ctx, p.cancel = context.WithCancel(context.Background())
+
+	return p, nil
 }
 
 func (s *sender) close() error {
@@ -76,6 +78,7 @@ func (s *sender) start() {
 	}
 
 	s.logger.Warn("Signal received: %s", <-shutdown)
+	s.cancel()
 }
 
 func (s *sender) consume() error {
@@ -105,11 +108,18 @@ func (s *sender) consume() error {
 	}
 
 	go func() {
-		for msg := range messages {
-			s.logger.Info("Received message from queue")
-			s.logger.Debug("Message body: %s", msg.Body)
-			s.parseAndSend(msg)
+	OUTER:
+		for {
+			select {
+			case <-s.ctx.Done():
+				break OUTER
+			case msg := <-messages:
+				s.logger.Info("Received message from queue")
+				s.logger.Debug("Message body: %s", msg.Body)
+				s.parseAndSend(msg)
+			}
 		}
+		s.logger.Info("Consume worker ended")
 	}()
 
 	return nil
@@ -144,5 +154,9 @@ func (s *sender) parseAndSend(msg amqp.Delivery) {
 
 func (s *sender) sendAlert(user models.User, event models.Event) error {
 
-	return errors.New("stub send")
+	// send
+
+	// write -1 to every after success send
+
+	return nil
 }
