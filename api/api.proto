@@ -16,7 +16,7 @@ message Event {
     google.protobuf.Duration duration = 8;
     string location = 9;
     string userID = 10;
-    google.protobuf.Duration alert_before = 11;
+    google.protobuf.Duration alert_every = 11;
 }
 
 message User {
@@ -42,7 +42,7 @@ message EventRequest {
     google.protobuf.Duration duration = 5;
     string userID = 6;
     string ID = 7;
-    google.protobuf.Duration alert_before = 8;
+    google.protobuf.Duration alert_every = 8;
 }
 
 message EventResponse {

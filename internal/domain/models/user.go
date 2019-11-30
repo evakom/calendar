@@ -8,16 +8,14 @@ package models
 
 import (
 	"github.com/google/uuid"
-	"time"
 )
 
 // User is the base user's struct.
 type User struct {
-	ID       uuid.UUID
-	Name     string
-	Email    []string
-	Mobile   []string
-	Birthday time.Time
+	ID     uuid.UUID
+	Name   string
+	Email  string
+	Mobile string
 }
 
 // NewUser returns new user struct.
