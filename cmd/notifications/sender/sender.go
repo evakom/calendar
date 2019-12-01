@@ -25,6 +25,8 @@ const (
 	eventIDField     = "event_id"
 	eventOccursField = "occurs_at"
 	userIDField      = "user_id"
+	fromEmail        = "info@kirk.com"
+	emailField       = "email"
 )
 
 type sender struct {
@@ -155,7 +157,7 @@ func (s *sender) parseAndSend(msg amqp.Delivery) {
 func (s *sender) sendAlert(user models.User, event models.Event) error {
 
 	if err := sendEmail(
-		"info@tirava.ru",
+		fromEmail,
 		event.Subject,
 		event.Body,
 		[]string{user.Email},
@@ -176,6 +178,7 @@ func (s *sender) sendAlert(user models.User, event models.Event) error {
 	s.logger.WithFields(loggers.Fields{
 		eventIDField: event.ID.String(),
 		userIDField:  event.UserID,
+		emailField:   user.Email,
 	}).Info("Alerted event disabled for user")
 
 	return nil

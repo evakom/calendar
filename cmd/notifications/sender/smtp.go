@@ -8,13 +8,14 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"html/template"
 	"log"
 	"net/smtp"
 )
 
-// Constants.
+// EmailTemplate for emails.
 const EmailTemplate = `
 From: {{.From}}
 To: {{.To}}
@@ -23,23 +24,28 @@ Subject: {{.Subject}}
 {{.Body}}
 `
 
+const (
+	userName = "cap@kirk.com"
+	password = "hrenvam"
+	server   = "192.168.137.2"
+	port     = 25
+)
+
 // EmailMessage base struct.
 type EmailMessage struct {
 	From, Subject, Body string
 	To                  []string
 }
 
-type emailCredentials struct {
-	userName, password string
-	server             string
-	port               int
+type loginAuth struct {
+	username, password string
 }
 
-var t *template.Template
+var tmplEmail *template.Template
 
 func init() {
-	t = template.New("email")
-	if _, err := t.Parse(EmailTemplate); err != nil {
+	tmplEmail = template.New("email")
+	if _, err := tmplEmail.Parse(EmailTemplate); err != nil {
 		log.Println(err)
 	}
 }
@@ -53,30 +59,13 @@ func sendEmail(from, subject, body string, to []string) error {
 	}
 
 	var bodyB bytes.Buffer
-	if err := t.Execute(&bodyB, message); err != nil {
+	if err := tmplEmail.Execute(&bodyB, message); err != nil {
 		return err
 	}
 
-	authCreds := &emailCredentials{
-		userName: "info",
-		password: "",
-		server:   "192.168.137.2",
-		port:     25,
-	}
+	auth := authLogin(userName, password)
 
-	//auth := unencryptedAuth{smtp.PlainAuth("",
-	//	authCreds.userName,
-	//	authCreds.password,
-	//	authCreds.server,
-	//),
-	//}
-	auth := smtp.PlainAuth("",
-		authCreds.userName,
-		authCreds.password,
-		authCreds.server,
-	)
-
-	sp := fmt.Sprintf("%s:%d", authCreds.server, authCreds.port)
+	sp := fmt.Sprintf("%s:%d", server, port)
 	if err := smtp.SendMail(sp,
 		auth,
 		message.From,
@@ -89,12 +78,24 @@ func sendEmail(from, subject, body string, to []string) error {
 	return nil
 }
 
-//type unencryptedAuth struct {
-//	smtp.Auth
-//}
-//
-//func (a unencryptedAuth) Start(server *smtp.ServerInfo) (string, []byte, error) {
-//	s := *server
-//	s.TLS = true
-//	return a.Auth.Start(&s)
-//}
+func authLogin(username, password string) smtp.Auth {
+	return &loginAuth{username, password}
+}
+
+func (a *loginAuth) Start(server *smtp.ServerInfo) (string, []byte, error) {
+	return "LOGIN", []byte{}, nil
+}
+
+func (a *loginAuth) Next(fromServer []byte, more bool) ([]byte, error) {
+	if more {
+		switch string(fromServer) {
+		case "Username:":
+			return []byte(a.username), nil
+		case "Password:":
+			return []byte(a.password), nil
+		default:
+			return nil, errors.New("unknown from server")
+		}
+	}
+	return nil, nil
+}
