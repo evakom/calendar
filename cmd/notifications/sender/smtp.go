@@ -8,11 +8,13 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"html/template"
+	"log"
 	"net/smtp"
-	"strconv"
 )
 
+// Constants.
 const EmailTemplate = `
 From: {{.From}}
 To: {{.To}}
@@ -21,49 +23,78 @@ Subject: {{.Subject}}
 {{.Body}}
 `
 
+// EmailMessage base struct.
 type EmailMessage struct {
 	From, Subject, Body string
 	To                  []string
 }
 
-type EmailCredentials struct {
-	UserName, Password, Server string
-	Port                       int
+type emailCredentials struct {
+	userName, password string
+	server             string
+	port               int
 }
 
 var t *template.Template
 
 func init() {
 	t = template.New("email")
-	t.Parse(EmailTemplate)
+	if _, err := t.Parse(EmailTemplate); err != nil {
+		log.Println(err)
+	}
 }
 
-func send() {
+func sendEmail(from, subject, body string, to []string) error {
 	message := &EmailMessage{
-		From:    "tirava@gmail.com",
-		Subject: "Testik",
-		Body:    "Hello femina!",
-		To:      []string{"info@feminasodt.ru"},
+		From:    from,
+		Subject: subject,
+		Body:    body,
+		To:      to,
 	}
 
-	var body bytes.Buffer
-	t.Execute(&body, message)
-
-	authCreds := &EmailCredentials{
-		UserName: "info",
-		Password: "",
-		Server:   "192.168.137.2",
-		Port:     25,
+	var bodyB bytes.Buffer
+	if err := t.Execute(&bodyB, message); err != nil {
+		return err
 	}
 
+	authCreds := &emailCredentials{
+		userName: "info",
+		password: "",
+		server:   "192.168.137.2",
+		port:     25,
+	}
+
+	//auth := unencryptedAuth{smtp.PlainAuth("",
+	//	authCreds.userName,
+	//	authCreds.password,
+	//	authCreds.server,
+	//),
+	//}
 	auth := smtp.PlainAuth("",
-		authCreds.UserName,
-		authCreds.Password,
-		authCreds.Server)
+		authCreds.userName,
+		authCreds.password,
+		authCreds.server,
+	)
 
-	smtp.SendMail(authCreds.Server+":"+strconv.Itoa(authCreds.Port),
+	sp := fmt.Sprintf("%s:%d", authCreds.server, authCreds.port)
+	if err := smtp.SendMail(sp,
 		auth,
 		message.From,
 		message.To,
-		body.Bytes())
+		bodyB.Bytes(),
+	); err != nil {
+		return err
+	}
+
+	return nil
 }
+
+//type unencryptedAuth struct {
+//	smtp.Auth
+//}
+//
+//func (a unencryptedAuth) Start(server *smtp.ServerInfo) (string, []byte, error) {
+//	s := *server
+//	s.TLS = true
+//	return a.Auth.Start(&s)
+//}

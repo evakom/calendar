@@ -116,7 +116,7 @@ func (s *sender) consume() error {
 			case msg := <-messages:
 				s.logger.Info("Received message from queue")
 				s.logger.Debug("Message body: %s", msg.Body)
-				s.parseAndSend(msg)
+				go s.parseAndSend(msg)
 			}
 		}
 		s.logger.Info("Consume worker ended")
@@ -154,9 +154,29 @@ func (s *sender) parseAndSend(msg amqp.Delivery) {
 
 func (s *sender) sendAlert(user models.User, event models.Event) error {
 
-	// send
+	if err := sendEmail(
+		"info@tirava.ru",
+		event.Subject,
+		event.Body,
+		[]string{user.Email},
+	); err != nil {
+		return err
+	}
 
-	// write -1 to every after success send
+	s.logger.WithFields(loggers.Fields{
+		eventIDField: event.ID.String(),
+		userIDField:  event.UserID,
+	}).Info("Alerted event sent to user")
+
+	event.AlertEvery = -1
+	if err := s.db.EditEventDB(s.ctx, event); err != nil {
+		return err
+	}
+
+	s.logger.WithFields(loggers.Fields{
+		eventIDField: event.ID.String(),
+		userIDField:  event.UserID,
+	}).Info("Alerted event disabled for user")
 
 	return nil
 }
