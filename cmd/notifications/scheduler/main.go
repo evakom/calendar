@@ -34,7 +34,7 @@ func main() {
 
 	db := tools.InitDB(context.TODO(), conf.DBType, conf.DSN)
 
-	publisher, err := newPublisher(db, conf.RabbitMQ, timeout)
+	publisher, err := newScheduler(db, conf.RabbitMQ, timeout)
 	if err != nil {
 		log.Fatal(err)
 	}

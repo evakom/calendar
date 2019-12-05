@@ -31,7 +31,7 @@ const (
 
 const eventExpireDateAfter = 365 * 24 * time.Hour
 
-type publisher struct {
+type scheduler struct {
 	conn    *amqp.Connection
 	db      storage.DB
 	ch      *amqp.Channel
@@ -41,7 +41,7 @@ type publisher struct {
 	logger  loggers.Logger
 }
 
-func newPublisher(db storage.DB, dsn string, timeout time.Duration) (*publisher, error) {
+func newScheduler(db storage.DB, dsn string, timeout time.Duration) (*scheduler, error) {
 	conn, err := amqp.Dial(dsn)
 	if err != nil {
 		return nil, err
@@ -53,7 +53,7 @@ func newPublisher(db storage.DB, dsn string, timeout time.Duration) (*publisher,
 	logger := loggers.GetLogger()
 	logger.Info("Connected to rabbit MQ")
 
-	p := &publisher{
+	p := &scheduler{
 		conn:    conn,
 		ch:      ch,
 		db:      db,
@@ -65,7 +65,7 @@ func newPublisher(db storage.DB, dsn string, timeout time.Duration) (*publisher,
 	return p, nil
 }
 
-func (p *publisher) close() error {
+func (p *scheduler) close() error {
 	errCh := p.ch.Close()
 	errConn := p.conn.Close()
 	if errCh != nil || errConn != nil {
@@ -75,7 +75,7 @@ func (p *publisher) close() error {
 	return nil
 }
 
-func (p *publisher) publish(event models.Event) error {
+func (p *scheduler) publish(event models.Event) error {
 	q, err := p.ch.QueueDeclare(
 		eventsQueueName, // name
 		false,           // durable
@@ -107,7 +107,7 @@ func (p *publisher) publish(event models.Event) error {
 	return nil
 }
 
-func (p *publisher) start() {
+func (p *scheduler) start() {
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)
 
@@ -117,7 +117,7 @@ func (p *publisher) start() {
 	p.cancel()
 }
 
-func (p *publisher) worker() {
+func (p *scheduler) worker() {
 	alerts := make(map[uuid.UUID]time.Time)
 OUTER:
 	for {
@@ -125,7 +125,7 @@ OUTER:
 		case <-p.ctx.Done():
 			break OUTER
 		case <-time.After(p.timeout):
-			p.logger.Info("Publish worker tick: %s", p.timeout)
+			p.logger.Info("Scheduler worker tick: %s", p.timeout)
 			events := p.db.GetAlertedEventsDB(p.ctx, time.Now())
 			if len(events) == 0 {
 				continue
@@ -186,5 +186,5 @@ OUTER:
 			}
 		}
 	}
-	p.logger.Info("Publish worker ended")
+	p.logger.Info("Scheduler worker ended")
 }

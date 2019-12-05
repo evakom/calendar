@@ -125,7 +125,7 @@ func (s *sender) consume() error {
 				go s.parseAndSend(msg)
 			}
 		}
-		s.logger.Info("Consume worker ended")
+		s.logger.Info("Sender worker ended")
 	}()
 
 	return nil
