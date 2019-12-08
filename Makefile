@@ -10,3 +10,8 @@ build: gen
 
 test: build
 	go test ./...
+
+docker-http-server:
+	go build -o http_server cmd/http_server/main.go
+	docker build -t calendar-http-server -f ./deployments/docker/http_server/Dockerfile .
+	docker run --rm -d -p 8080:8080 --name calendar-http-server --network calendar_calendar calendar-http-server
