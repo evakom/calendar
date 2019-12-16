@@ -35,6 +35,6 @@ test: build
 	go test ./integration_tests/... -o ./integration_tests/integration_tests -i ;\
     docker-compose -f docker-compose.test.yml up --build -d ;\
     test_status_code=0 ;\
-    docker-compose -f docker-compose.test.yml run /app/integration_tests || test_status_code=$$? ;\
+    docker-compose -f docker-compose.test.yml run calendar-integration-tests || test_status_code=$$? ;\
     docker-compose -f docker-compose.test.yml down ;\
     exit $$test_status_code ;\
