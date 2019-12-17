@@ -19,7 +19,9 @@ func TestMain(m *testing.M) {
 	time.Sleep(5 * time.Second)
 
 	status := godog.RunWithOptions("integration", func(s *godog.Suite) {
-		FeatureContext(s)
+		godog.SuiteContext(s)
+		//FeatureContextAddEvent(s)
+		FeatureContextListEvents(s)
 	}, godog.Options{
 		Format:    "pretty",
 		Paths:     []string{"features"},

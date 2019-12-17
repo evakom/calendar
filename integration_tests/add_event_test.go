@@ -144,7 +144,7 @@ func (t *eventTest) iGetEventResponseWithErrorCodeEventNotFound() error {
 	return nil
 }
 
-func FeatureContext(s *godog.Suite) {
+func FeatureContextAddEvent(s *godog.Suite) {
 	test := new(eventTest)
 	s.BeforeScenario(test.start)
 
