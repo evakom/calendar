@@ -5,7 +5,7 @@ Feature: List events from database via service API for day, week and month
 
 	Scenario: Adding events into database via service API
 		When I send CreateEvent to service API for cycle with 5 events for same user and step 3 days for OccursAt
-		Then all added events will be returned by GetUserEvents for given user
+		Then all 5 added events will be returned by GetUserEvents for given user
 		And GetError has no errors in both cases
 
 	Scenario: List events for day via service API

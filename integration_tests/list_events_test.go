@@ -9,6 +9,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/DATA-DOG/godog"
 	"github.com/evakom/calendar/internal/grpc/api"
 	"github.com/evakom/calendar/tools"
@@ -21,6 +22,7 @@ import (
 type eventsTest struct {
 	req    *api.EventRequest
 	resp   *api.EventResponse
+	resps  *api.EventsResponse
 	conn   *grpc.ClientConn
 	client api.CalendarServiceClient
 	ctx    context.Context
@@ -74,8 +76,22 @@ func (t *eventsTest) iSendCreateEventToServiceAPIForCycleWithEventsForSameUserAn
 	return nil
 }
 
-func (t *eventsTest) allAddedEventsWillBeReturnedByGetUserEventsForGivenUser() error {
-	return godog.ErrPending
+func (t *eventsTest) allAddedEventsWillBeReturnedByGetUserEventsForGivenUser(
+	numEvents int) error {
+	var err error
+
+	t.resps, err = t.client.GetUserEvents(t.ctx, &api.ID{Id: t.req.GetUserID()})
+	if err != nil {
+		return err
+	}
+
+	actualEvents := len(t.resps.GetEvents())
+	if actualEvents != numEvents {
+		return fmt.Errorf("expected events: %d != actual events: %d",
+			numEvents, actualEvents)
+	}
+
+	return nil
 }
 
 func (t *eventsTest) getErrorHasNoErrorsInBothCases() error {
@@ -121,7 +137,7 @@ func FeatureContextListEvents(s *godog.Suite) {
 
 	s.Step(`^I send CreateEvent to service API for cycle with (\d+) events for same user and step (\d+) days for OccursAt$`,
 		test.iSendCreateEventToServiceAPIForCycleWithEventsForSameUserAndStepDaysForOccursAt)
-	s.Step(`^all added events will be returned by GetUserEvents for given user$`,
+	s.Step(`^all (\d+) added events will be returned by GetUserEvents for given user$`,
 		test.allAddedEventsWillBeReturnedByGetUserEventsForGivenUser)
 	s.Step(`^GetError has no errors in both cases$`,
 		test.getErrorHasNoErrorsInBothCases)
