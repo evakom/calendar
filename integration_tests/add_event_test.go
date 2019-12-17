@@ -9,6 +9,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/DATA-DOG/godog"
 	"github.com/evakom/calendar/internal/grpc/api"
 	"github.com/evakom/calendar/tools"
@@ -27,11 +28,13 @@ type eventTest struct {
 	conn   *grpc.ClientConn
 	client api.CalendarServiceClient
 	ctx    context.Context
+	lastID string
 }
 
 func (t *eventTest) start(interface{}) {
 	var err error
 	conf := tools.InitConfig("config.yml")
+	//conf.ListenGRPC = ":8889" // TODO delete
 	t.conn, err = grpc.Dial(conf.ListenGRPC, grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)
@@ -74,7 +77,6 @@ func (t *eventTest) addedEventWillBeReturnedByGetEventWithIdOfTheEvent() error {
 	if err != nil {
 		return err
 	}
-	t.req.ID = id
 
 	return nil
 }
@@ -88,16 +90,35 @@ func (t *eventTest) getErrorHasNoErrorsInBothCases() error {
 	return nil
 }
 
-func iSendGetEventRequestWithEventIdToServiceAPI() error {
-	return godog.ErrPending
+func (t *eventTest) iSendGetEventRequestWithEventIdToServiceAPI() error {
+	var err error
+	t.lastID = t.resp.GetEvent().Id
+
+	t.resp, err = t.client.GetEvent(t.ctx, &api.ID{Id: t.lastID})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func iGetEventResponseWithIdOfTheEvent() error {
-	return godog.ErrPending
+func (t *eventTest) iGetEventResponseWithIdOfTheEvent() error {
+	respID := t.resp.GetEvent().Id
+	if respID != t.lastID {
+		return fmt.Errorf("request eventID: %s != response eventID: %s",
+			t.lastID, respID)
+	}
+
+	return nil
 }
 
-func getErrorHasNoErrors() error {
-	return godog.ErrPending
+func (t *eventTest) getErrorHasNoErrors() error {
+	respErr := t.resp.GetError()
+	if respErr != "" {
+		return errors.New(respErr)
+	}
+
+	return nil
 }
 
 func FeatureContext(s *godog.Suite) {
@@ -110,9 +131,12 @@ func FeatureContext(s *godog.Suite) {
 		test.addedEventWillBeReturnedByGetEventWithIdOfTheEvent)
 	s.Step(`^GetError has no errors in both cases$`,
 		test.getErrorHasNoErrorsInBothCases)
-	s.Step(`^I send GetEvent request with event id to service API$`, iSendGetEventRequestWithEventIdToServiceAPI)
-	s.Step(`^I get EventResponse with id of the event$`, iGetEventResponseWithIdOfTheEvent)
-	s.Step(`^GetError has no errors$`, getErrorHasNoErrors)
+	s.Step(`^I send GetEvent request with event id to service API$`,
+		test.iSendGetEventRequestWithEventIdToServiceAPI)
+	s.Step(`^I get EventResponse with id of the event$`,
+		test.iGetEventResponseWithIdOfTheEvent)
+	s.Step(`^GetError has no errors$`,
+		test.getErrorHasNoErrors)
 
 	s.AfterScenario(test.stop)
 }

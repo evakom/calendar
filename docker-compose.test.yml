@@ -11,25 +11,25 @@ services:
     depends_on:
       - calendar-alert-scheduler
       - calendar-grpc-server
-      - calendar-http-server
     networks:
       - calendar_tests
 
-  calendar-http-server:
-    build:
-      context: .
-      dockerfile: deployments/docker/http_server/Dockerfile
-    container_name: calendar-http-alpine
-    restart: always
-    image: calendar-http-server
-    depends_on:
-      - calendar-db
-    expose:
-      - 8080
-    ports:
-      - 8081:8080
-    networks:
-      - calendar_tests
+  ## For debug only
+  #  calendar-http-server:
+  #    build:
+  #      context: .
+  #      dockerfile: deployments/docker/http_server/Dockerfile
+  #    container_name: calendar-http-alpine
+  #    restart: always
+  #    image: calendar-http-server
+  #    depends_on:
+  #      - calendar-db
+  #    expose:
+  #      - 8080
+  #    ports:
+  #      - 8081:8080
+  #    networks:
+  #      - calendar_tests
 
   calendar-grpc-server:
     build:
@@ -45,7 +45,9 @@ services:
     ports:
       - 8889:8888
     networks:
-      - calendar_tests
+      calendar_tests:
+        aliases:
+          - grpc
 
   calendar-alert-scheduler:
     build:
