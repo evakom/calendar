@@ -12,3 +12,7 @@ Feature: Adding event into database via service API
 		When I send GetEvent request with event id to service API
 		Then I get EventResponse with id of the event
 		And GetError has no errors
+
+	Scenario: Getting non existing event from database by id via service API
+    		When I send GetEvent request with non existing event id to service API
+    		Then I get EventResponse with error code 'Event not found'

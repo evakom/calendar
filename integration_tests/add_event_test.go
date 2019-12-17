@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/DATA-DOG/godog"
+	bizErr "github.com/evakom/calendar/internal/domain/errors"
 	"github.com/evakom/calendar/internal/grpc/api"
 	"github.com/evakom/calendar/tools"
 	"github.com/google/uuid"
@@ -29,12 +30,12 @@ type eventTest struct {
 	client api.CalendarServiceClient
 	ctx    context.Context
 	lastID string
+	failID string
 }
 
 func (t *eventTest) start(interface{}) {
 	var err error
 	conf := tools.InitConfig("config.yml")
-	//conf.ListenGRPC = ":8889" // TODO delete
 	t.conn, err = grpc.Dial(conf.ListenGRPC, grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)
@@ -71,7 +72,7 @@ func (t *eventTest) iSendCreateEventWithEventRequestToServiceAPI() error {
 	return nil
 }
 
-func (t *eventTest) addedEventWillBeReturnedByGetEventWithIdOfTheEvent() error {
+func (t *eventTest) addedEventWillBeReturnedByGetEventWithIDOfTheEvent() error {
 	id := t.resp.GetEvent().Id
 	_, err := uuid.Parse(id)
 	if err != nil {
@@ -90,7 +91,7 @@ func (t *eventTest) getErrorHasNoErrorsInBothCases() error {
 	return nil
 }
 
-func (t *eventTest) iSendGetEventRequestWithEventIdToServiceAPI() error {
+func (t *eventTest) iSendGetEventRequestWithEventIDToServiceAPI() error {
 	var err error
 	t.lastID = t.resp.GetEvent().Id
 
@@ -102,7 +103,7 @@ func (t *eventTest) iSendGetEventRequestWithEventIdToServiceAPI() error {
 	return nil
 }
 
-func (t *eventTest) iGetEventResponseWithIdOfTheEvent() error {
+func (t *eventTest) iGetEventResponseWithIDOfTheEvent() error {
 	respID := t.resp.GetEvent().Id
 	if respID != t.lastID {
 		return fmt.Errorf("request eventID: %s != response eventID: %s",
@@ -121,6 +122,28 @@ func (t *eventTest) getErrorHasNoErrors() error {
 	return nil
 }
 
+func (t *eventTest) iSendGetEventRequestWithNonExistingEventIDToServiceAPI() error {
+	var err error
+	t.failID = "4bfe7be9-6b28-4f9e-8545-a315217227f5"
+
+	t.resp, err = t.client.GetEvent(t.ctx, &api.ID{Id: t.failID})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (t *eventTest) iGetEventResponseWithErrorCodeEventNotFound() error {
+	respErr := t.resp.GetError()
+	if respErr != bizErr.ErrEventNotFound.Error() {
+		return fmt.Errorf("expected error: %s but got error: %s",
+			bizErr.ErrEventNotFound, respErr)
+	}
+
+	return nil
+}
+
 func FeatureContext(s *godog.Suite) {
 	test := new(eventTest)
 	s.BeforeScenario(test.start)
@@ -128,15 +151,19 @@ func FeatureContext(s *godog.Suite) {
 	s.Step(`^I send CreateEvent with EventRequest to service API$`,
 		test.iSendCreateEventWithEventRequestToServiceAPI)
 	s.Step(`^added event will be returned by GetEvent with id of the event$`,
-		test.addedEventWillBeReturnedByGetEventWithIdOfTheEvent)
+		test.addedEventWillBeReturnedByGetEventWithIDOfTheEvent)
 	s.Step(`^GetError has no errors in both cases$`,
 		test.getErrorHasNoErrorsInBothCases)
 	s.Step(`^I send GetEvent request with event id to service API$`,
-		test.iSendGetEventRequestWithEventIdToServiceAPI)
+		test.iSendGetEventRequestWithEventIDToServiceAPI)
 	s.Step(`^I get EventResponse with id of the event$`,
-		test.iGetEventResponseWithIdOfTheEvent)
+		test.iGetEventResponseWithIDOfTheEvent)
 	s.Step(`^GetError has no errors$`,
 		test.getErrorHasNoErrors)
+	s.Step(`^I send GetEvent request with non existing event id to service API$`,
+		test.iSendGetEventRequestWithNonExistingEventIDToServiceAPI)
+	s.Step(`^I get EventResponse with error code \'Event not found\'$`,
+		test.iGetEventResponseWithErrorCodeEventNotFound)
 
 	s.AfterScenario(test.stop)
 }
