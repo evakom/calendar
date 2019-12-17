@@ -19,6 +19,8 @@ import (
 	"time"
 )
 
+const dayLayout = "2006-01-02"
+
 type eventsTest struct {
 	req    *api.EventRequest
 	resp   *api.EventResponse
@@ -95,24 +97,45 @@ func (t *eventsTest) allAddedEventsWillBeReturnedByGetUserEventsForGivenUser(
 }
 
 func (t *eventsTest) getErrorHasNoErrorsInBothCases() error {
-	respErr := t.resp.GetError()
-	if respErr != "" {
-		return errors.New(respErr)
+	respsErr := t.resps.GetError()
+	if respsErr != "" {
+		return errors.New(respsErr)
 	}
 
 	return nil
 }
 
-func iSendGetEventsForDayRequestWithCurrentDayToServiceAPI() error {
-	return godog.ErrPending
+func (t *eventsTest) iSendGetEventsForDayRequestWithCurrentDayToServiceAPI() error {
+	var err error
+
+	start := time.Now().Format(dayLayout)
+	startDay := parseDateTime(start, dayLayout)
+
+	t.resps, err = t.client.GetEventsForDay(t.ctx, &api.Day{Day: startDay})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func iGetEventsResponseWithEventInItWithOccursAtInCurrentDay(arg1 int) error {
-	return godog.ErrPending
+func (t *eventsTest) iGetEventsResponseWithEventInItWithOccursAtInCurrentDay(numEvents int) error {
+	actualEvents := len(t.resps.GetEvents())
+	if actualEvents != numEvents {
+		return fmt.Errorf("expected events: %d != actual events: %d",
+			numEvents, actualEvents)
+	}
+
+	return nil
 }
 
-func getErrorHasNoErrors() error {
-	return godog.ErrPending
+func (t *eventsTest) getErrorHasNoErrors() error {
+	respsErr := t.resps.GetError()
+	if respsErr != "" {
+		return errors.New(respsErr)
+	}
+
+	return nil
 }
 
 func iSendGetEventsForWeekRequestWithCurrentDayToServiceAPI() error {
@@ -141,9 +164,12 @@ func FeatureContextListEvents(s *godog.Suite) {
 		test.allAddedEventsWillBeReturnedByGetUserEventsForGivenUser)
 	s.Step(`^GetError has no errors in both cases$`,
 		test.getErrorHasNoErrorsInBothCases)
-	s.Step(`^I send GetEventsForDay request with current day to service API$`, iSendGetEventsForDayRequestWithCurrentDayToServiceAPI)
-	s.Step(`^I get EventsResponse with (\d+) event in it with OccursAt in current day$`, iGetEventsResponseWithEventInItWithOccursAtInCurrentDay)
-	s.Step(`^GetError has no errors$`, getErrorHasNoErrors)
+	s.Step(`^I send GetEventsForDay request with current day to service API$`,
+		test.iSendGetEventsForDayRequestWithCurrentDayToServiceAPI)
+	s.Step(`^I get EventsResponse with (\d+) event in it with OccursAt in current day$`,
+		test.iGetEventsResponseWithEventInItWithOccursAtInCurrentDay)
+	s.Step(`^GetError has no errors$`,
+		test.getErrorHasNoErrors)
 	s.Step(`^I send GetEventsForWeek request with current day to service API$`, iSendGetEventsForWeekRequestWithCurrentDayToServiceAPI)
 	s.Step(`^I get EventsResponse with (\d+) events in it with OccursAt in near week$`, iGetEventsResponseWithEventsInItWithOccursAtInNearWeek)
 	s.Step(`^I send GetEventsForMonth request with current day to service API$`, iSendGetEventsForMonthRequestWithCurrentDayToServiceAPI)
