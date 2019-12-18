@@ -29,8 +29,6 @@ type eventsTest struct {
 	conn     *grpc.ClientConn
 	client   api.CalendarServiceClient
 	ctx      context.Context
-	lastID   string
-	failID   string
 	startDay *timestamp.Timestamp
 }
 
@@ -165,6 +163,7 @@ func (t *eventsTest) iGetEventsResponseWithEventsInItWithOccursAtInNearMonth(num
 	return t.iGetEventsResponseWithEventInItWithOccursAtInCurrentDay(numEvents)
 }
 
+// FeatureContextListEvents implements test suite.
 func FeatureContextListEvents(s *godog.Suite) {
 	tests := new(eventsTest)
 	s.BeforeScenario(tests.start)

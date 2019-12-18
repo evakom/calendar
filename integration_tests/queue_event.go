@@ -8,9 +8,11 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/DATA-DOG/godog"
+	"github.com/evakom/calendar/internal/domain/models"
 	"github.com/evakom/calendar/internal/grpc/api"
 	"github.com/evakom/calendar/tools"
 	"github.com/streadway/amqp"
@@ -29,13 +31,14 @@ type alertTest struct {
 	connAmpq *amqp.Connection
 	ch       *amqp.Channel
 	sync.RWMutex
-	messages  [][]byte
-	req       *api.EventRequest
-	resp      *api.EventResponse
-	connGrpc  *grpc.ClientConn
-	client    api.CalendarServiceClient
-	ctx       context.Context
-	waitSched time.Duration
+	messages    [][]byte
+	req         *api.EventRequest
+	resp        *api.EventResponse
+	connGrpc    *grpc.ClientConn
+	client      api.CalendarServiceClient
+	ctx         context.Context
+	waitSched   time.Duration
+	wasQueueErr bool
 }
 
 func (t *alertTest) startConsume(interface{}) {
@@ -149,16 +152,35 @@ func (t *alertTest) iConsumeMessageQueue() error {
 	return nil
 }
 
-func (t *alertTest) iGetEventWithCorrectTestUserId() error {
-	//uid :=
+func (t *alertTest) iGetEventWithCorrectTestUserID() error {
+	t.RLock()
+	defer t.RUnlock()
+
+	event := models.Event{}
+	if err := json.Unmarshal(t.messages[0], &event); err != nil {
+		return err
+	}
+
+	if event.UserID.String() != t.req.UserID {
+		t.wasQueueErr = true
+		return fmt.Errorf("user id from database: %s != user id from queue: %s",
+			t.resp.GetEvent().UserID, event.UserID.String())
+	}
+
 	return nil
 }
 
 func (t *alertTest) willBeReadyToSendMessageRotThisUser() error {
-	//fmt.Printf("User id: %s", t.)
+	if t.wasQueueErr {
+		return errors.New("alert email not sent to user")
+	}
+
+	fmt.Printf("Sent fake email to User id: %s\n", t.resp.GetEvent().UserID)
+
 	return nil
 }
 
+// FeatureContextQueueEvent implements test suite.
 func FeatureContextQueueEvent(s *godog.Suite) {
 	test := new(alertTest)
 	s.BeforeScenario(test.startConsume)
@@ -172,7 +194,7 @@ func FeatureContextQueueEvent(s *godog.Suite) {
 	s.Step(`^I consume message queue$`,
 		test.iConsumeMessageQueue)
 	s.Step(`^I get event with correct test user id$`,
-		test.iGetEventWithCorrectTestUserId)
+		test.iGetEventWithCorrectTestUserID)
 	s.Step(`^will be ready to send message rot this user$`,
 		test.willBeReadyToSendMessageRotThisUser)
 

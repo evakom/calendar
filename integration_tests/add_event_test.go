@@ -136,6 +136,7 @@ func (t *eventTest) iGetEventResponseWithErrorCodeEventNotFound() error {
 	return nil
 }
 
+// FeatureContextAddEvent implements test suite.
 func FeatureContextAddEvent(s *godog.Suite) {
 	test := new(eventTest)
 	s.BeforeScenario(test.start)
