@@ -7,39 +7,116 @@
 package main
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"github.com/DATA-DOG/godog"
+	"github.com/evakom/calendar/internal/grpc/api"
 	"github.com/evakom/calendar/tools"
 	"github.com/streadway/amqp"
+	"google.golang.org/grpc"
 	"log"
 	"sync"
+	"time"
 )
 
-const eventsQueueName = "events"
+const (
+	eventsQueueName = "events"
+	dayFormat       = "2006-01-02"
+)
 
 type alertTest struct {
-	conn *amqp.Connection
-	ch   *amqp.Channel
-	stop chan bool
+	connAmpq *amqp.Connection
+	ch       *amqp.Channel
 	sync.RWMutex
-	messages [][]byte
+	messages  [][]byte
+	req       *api.EventRequest
+	resp      *api.EventResponse
+	connGrpc  *grpc.ClientConn
+	client    api.CalendarServiceClient
+	ctx       context.Context
+	waitSched time.Duration
 }
 
 func (t *alertTest) startConsume(interface{}) {
 	var err error
 	t.messages = make([][]byte, 0)
-	t.stop = make(chan bool)
+	//t.stop = make(chan bool)
 
 	conf := tools.InitConfig("config.yml")
 
-	t.conn, err = amqp.Dial(conf.RabbitMQ)
+	t.connAmpq, err = amqp.Dial(conf.RabbitMQ)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	t.ch, err = t.conn.Channel()
+	t.ch, err = t.connAmpq.Channel()
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	t.waitSched, err = time.ParseDuration(conf.PubTimeout)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	t.connGrpc, err = grpc.Dial(conf.ListenGRPC, grpc.WithInsecure())
+	if err != nil {
+		log.Fatal(err)
+	}
+	t.client = api.NewCalendarServiceClient(t.connGrpc)
+
+	t.ctx = context.TODO()
+
+	start := time.Now().Format(dayFormat)
+
+	t.req = &api.EventRequest{
+		OccursAt:   parseDateTime(start, dayFormat),
+		Subject:    "GoDog alert event",
+		Body:       "HomeWork-9: Integration tests",
+		Location:   "Moscow",
+		Duration:   parseDuration("1h"),
+		UserID:     "a7fdcee4-8a27-4200-8529-c5336c886f79",
+		AlertEvery: parseDuration("1m"),
+	}
+}
+
+func (t *alertTest) stopConsume(interface{}, error) {
+	errCh := t.ch.Close()
+	errConn := t.connAmpq.Close()
+
+	if errCh != nil || errConn != nil {
+		log.Println(errCh, errConn)
+	}
+
+	t.messages = nil
+}
+
+func (t *alertTest) iCreateEventWithEventRequestToServiceAPIWithOccursAtNow() error {
+	var err error
+
+	t.resp, err = t.client.CreateEvent(t.ctx, t.req)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (t *alertTest) addedEventWillBeScheduledIntoMessageQueue() error {
+	// it will be done by scheduler
+	return nil
+}
+
+func (t *alertTest) getErrorHasNoError() error {
+	if respErr := t.resp.GetError(); respErr != "" {
+		return errors.New(respErr)
+	}
+
+	return nil
+}
+
+func (t *alertTest) iConsumeMessageQueue() error {
 
 	q, err := t.ch.QueueDeclare(eventsQueueName, false, false, false, false, nil)
 	if err != nil {
@@ -51,67 +128,53 @@ func (t *alertTest) startConsume(interface{}) {
 		log.Fatal(err)
 	}
 
-	go func(stop <-chan bool) {
-		for {
-			select {
-			case <-stop:
-				return
-			case event := <-events:
-				t.Lock()
-				t.messages = append(t.messages, event.Body)
-				t.Unlock()
-			}
+	go func() {
+		for event := range events {
+			t.Lock()
+			t.messages = append(t.messages, event.Body)
+			t.Unlock()
 		}
-	}(t.stop)
-}
+	}()
 
-func (t *alertTest) stopConsume(interface{}, error) {
-	t.stop <- true
+	fmt.Printf("Wait %s for scheduler send event...", t.waitSched.String())
+	time.Sleep(t.waitSched)
 
-	errCh := t.ch.Close()
-	errConn := t.conn.Close()
-
-	if errCh != nil || errConn != nil {
-		log.Println(errCh, errConn)
+	t.RLock()
+	defer t.RUnlock()
+	if len(t.messages) != 1 {
+		return fmt.Errorf("event in queue must be one, but received: %d",
+			len(t.messages))
 	}
 
-	t.messages = nil
+	return nil
 }
 
-func iCreateEventWithEventRequestToServiceAPIWithOccursAtNow() error {
-	return godog.ErrPending
+func (t *alertTest) iGetEventWithCorrectTestUserId() error {
+	//uid :=
+	return nil
 }
 
-func addedEventWillBeScheduledIntoMessageQueue() error {
-	return godog.ErrPending
-}
-
-func getErrorHasNoError() error {
-	return godog.ErrPending
-}
-
-func iConsumeMessageQueue() error {
-	return godog.ErrPending
-}
-
-func iGetEventWithCorrectTestUserId() error {
-	return godog.ErrPending
-}
-
-func willBeReadyToSendMessageRotThisUser() error {
-	return godog.ErrPending
+func (t *alertTest) willBeReadyToSendMessageRotThisUser() error {
+	//fmt.Printf("User id: %s", t.)
+	return nil
 }
 
 func FeatureContextQueueEvent(s *godog.Suite) {
 	test := new(alertTest)
 	s.BeforeScenario(test.startConsume)
 
-	s.Step(`^I CreateEvent with EventRequest to service API with OccursAt = Now$`, iCreateEventWithEventRequestToServiceAPIWithOccursAtNow)
-	s.Step(`^added event will be scheduled into message queue$`, addedEventWillBeScheduledIntoMessageQueue)
-	s.Step(`^GetError has no error$`, getErrorHasNoError)
-	s.Step(`^I consume message queue$`, iConsumeMessageQueue)
-	s.Step(`^I get event with correct test user id$`, iGetEventWithCorrectTestUserId)
-	s.Step(`^will be ready to send message rot this user$`, willBeReadyToSendMessageRotThisUser)
+	s.Step(`^I CreateEvent with EventRequest to service API with OccursAt = Now$`,
+		test.iCreateEventWithEventRequestToServiceAPIWithOccursAtNow)
+	s.Step(`^added event will be scheduled into message queue$`,
+		test.addedEventWillBeScheduledIntoMessageQueue)
+	s.Step(`^GetError has no error$`,
+		test.getErrorHasNoError)
+	s.Step(`^I consume message queue$`,
+		test.iConsumeMessageQueue)
+	s.Step(`^I get event with correct test user id$`,
+		test.iGetEventWithCorrectTestUserId)
+	s.Step(`^will be ready to send message rot this user$`,
+		test.willBeReadyToSendMessageRotThisUser)
 
 	s.AfterScenario(test.stopConsume)
 }
