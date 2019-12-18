@@ -51,7 +51,7 @@ func (t *eventTest) start(interface{}) {
 		Location:   "Moscow",
 		Duration:   parseDuration("1h"),
 		UserID:     "a7fdcee4-8a27-4200-8529-c5336c886f77",
-		AlertEvery: parseDuration("1m"),
+		AlertEvery: parseDuration("-1ns"),
 	}
 }
 

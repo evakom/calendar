@@ -20,8 +20,9 @@ func TestMain(m *testing.M) {
 
 	status := godog.RunWithOptions("integration", func(s *godog.Suite) {
 		godog.SuiteContext(s)
-		FeatureContextAddEvent(s)
-		FeatureContextListEvents(s)
+		//FeatureContextAddEvent(s)
+		//FeatureContextListEvents(s)
+		FeatureContextQueueEvent(s)
 	}, godog.Options{
 		Format:    "pretty",
 		Paths:     []string{"features"},
