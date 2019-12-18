@@ -33,7 +33,7 @@ restart: down up
 test: build
 	set -e ;\
 	go test ./integration_tests/... -o ./integration_tests/integration_tests -i ;\
-    docker-compose -f docker-compose.test.yml up --build -d ;\
+    docker-compose -f docker-compose.test.yml build ;\
     test_status_code=0 ;\
     docker-compose -f docker-compose.test.yml run calendar-integration-tests || test_status_code=$$? ;\
     docker-compose -f docker-compose.test.yml down ;\

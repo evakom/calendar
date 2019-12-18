@@ -14,6 +14,7 @@ import (
 	"github.com/evakom/calendar/internal/grpc/api"
 	"github.com/evakom/calendar/tools"
 	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/timestamp"
 	"google.golang.org/grpc"
 	"log"
 	"time"
@@ -22,18 +23,20 @@ import (
 const dayLayout = "2006-01-02"
 
 type eventsTest struct {
-	req    *api.EventRequest
-	resp   *api.EventResponse
-	resps  *api.EventsResponse
-	conn   *grpc.ClientConn
-	client api.CalendarServiceClient
-	ctx    context.Context
-	lastID string
-	failID string
+	req      *api.EventRequest
+	resp     *api.EventResponse
+	resps    *api.EventsResponse
+	conn     *grpc.ClientConn
+	client   api.CalendarServiceClient
+	ctx      context.Context
+	lastID   string
+	failID   string
+	startDay *timestamp.Timestamp
 }
 
 func (t *eventsTest) start(interface{}) {
 	var err error
+
 	conf := tools.InitConfig("config.yml")
 	t.conn, err = grpc.Dial(conf.ListenGRPC, grpc.WithInsecure())
 	if err != nil {
@@ -48,9 +51,12 @@ func (t *eventsTest) start(interface{}) {
 		Body:       "HomeWork-9: Integration tests",
 		Location:   "Moscow",
 		Duration:   parseDuration("1h"),
-		UserID:     "a7fdcee4-8a27-4200-8529-c5336c886f77",
+		UserID:     "a7fdcee4-8a27-4200-8529-c5336c886f78",
 		AlertEvery: parseDuration("1m"),
 	}
+
+	start := time.Now().Format(dayLayout)
+	t.startDay = parseDateTime(start, dayLayout)
 }
 
 func (t *eventsTest) stop(interface{}, error) {
@@ -96,9 +102,8 @@ func (t *eventsTest) allAddedEventsWillBeReturnedByGetUserEventsForGivenUser(
 	return nil
 }
 
-func (t *eventsTest) getErrorHasNoErrorsInBothCases() error {
-	respsErr := t.resps.GetError()
-	if respsErr != "" {
+func (t *eventsTest) getErrorHasNoErrorsInTheseCases() error {
+	if respsErr := t.resps.GetError(); respsErr != "" {
 		return errors.New(respsErr)
 	}
 
@@ -108,10 +113,7 @@ func (t *eventsTest) getErrorHasNoErrorsInBothCases() error {
 func (t *eventsTest) iSendGetEventsForDayRequestWithCurrentDayToServiceAPI() error {
 	var err error
 
-	start := time.Now().Format(dayLayout)
-	startDay := parseDateTime(start, dayLayout)
-
-	t.resps, err = t.client.GetEventsForDay(t.ctx, &api.Day{Day: startDay})
+	t.resps, err = t.client.GetEventsForDay(t.ctx, &api.Day{Day: t.startDay})
 	if err != nil {
 		return err
 	}
@@ -129,51 +131,64 @@ func (t *eventsTest) iGetEventsResponseWithEventInItWithOccursAtInCurrentDay(num
 	return nil
 }
 
-func (t *eventsTest) getErrorHasNoErrors() error {
-	respsErr := t.resps.GetError()
-	if respsErr != "" {
-		return errors.New(respsErr)
+func (t *eventsTest) getErrorReturnsNoErrors() error {
+	return t.getErrorHasNoErrorsInTheseCases()
+}
+
+func (t *eventsTest) iSendGetEventsForWeekRequestWithCurrentDayToServiceAPI() error {
+	var err error
+
+	t.resps, err = t.client.GetEventsForWeek(t.ctx, &api.Day{Day: t.startDay})
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func iSendGetEventsForWeekRequestWithCurrentDayToServiceAPI() error {
-	return godog.ErrPending
+func (t *eventsTest) iGetEventsResponseWithEventsInItWithOccursAtInNearWeek(numEvents int) error {
+	return t.iGetEventsResponseWithEventInItWithOccursAtInCurrentDay(numEvents)
 }
 
-func iGetEventsResponseWithEventsInItWithOccursAtInNearWeek(arg1 int) error {
-	return godog.ErrPending
+func (t *eventsTest) iSendGetEventsForMonthRequestWithCurrentDayToServiceAPI() error {
+	var err error
+
+	t.resps, err = t.client.GetEventsForMonth(t.ctx, &api.Day{Day: t.startDay})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func iSendGetEventsForMonthRequestWithCurrentDayToServiceAPI() error {
-	return godog.ErrPending
-}
-
-func iGetEventsResponseWithEventsInItWithOccursAtInNearMonth(arg1 int) error {
-	return godog.ErrPending
+func (t *eventsTest) iGetEventsResponseWithEventsInItWithOccursAtInNearMonth(numEvents int) error {
+	return t.iGetEventsResponseWithEventInItWithOccursAtInCurrentDay(numEvents)
 }
 
 func FeatureContextListEvents(s *godog.Suite) {
-	test := new(eventsTest)
-	s.BeforeScenario(test.start)
+	tests := new(eventsTest)
+	s.BeforeScenario(tests.start)
 
 	s.Step(`^I send CreateEvent to service API for cycle with (\d+) events for same user and step (\d+) days for OccursAt$`,
-		test.iSendCreateEventToServiceAPIForCycleWithEventsForSameUserAndStepDaysForOccursAt)
+		tests.iSendCreateEventToServiceAPIForCycleWithEventsForSameUserAndStepDaysForOccursAt)
 	s.Step(`^all (\d+) added events will be returned by GetUserEvents for given user$`,
-		test.allAddedEventsWillBeReturnedByGetUserEventsForGivenUser)
-	s.Step(`^GetError has no errors in both cases$`,
-		test.getErrorHasNoErrorsInBothCases)
+		tests.allAddedEventsWillBeReturnedByGetUserEventsForGivenUser)
+	s.Step(`^GetError has no errors in these cases$`,
+		tests.getErrorHasNoErrorsInTheseCases)
 	s.Step(`^I send GetEventsForDay request with current day to service API$`,
-		test.iSendGetEventsForDayRequestWithCurrentDayToServiceAPI)
+		tests.iSendGetEventsForDayRequestWithCurrentDayToServiceAPI)
 	s.Step(`^I get EventsResponse with (\d+) event in it with OccursAt in current day$`,
-		test.iGetEventsResponseWithEventInItWithOccursAtInCurrentDay)
-	s.Step(`^GetError has no errors$`,
-		test.getErrorHasNoErrors)
-	s.Step(`^I send GetEventsForWeek request with current day to service API$`, iSendGetEventsForWeekRequestWithCurrentDayToServiceAPI)
-	s.Step(`^I get EventsResponse with (\d+) events in it with OccursAt in near week$`, iGetEventsResponseWithEventsInItWithOccursAtInNearWeek)
-	s.Step(`^I send GetEventsForMonth request with current day to service API$`, iSendGetEventsForMonthRequestWithCurrentDayToServiceAPI)
-	s.Step(`^I get EventsResponse with (\d+) events in it with OccursAt in near month$`, iGetEventsResponseWithEventsInItWithOccursAtInNearMonth)
+		tests.iGetEventsResponseWithEventInItWithOccursAtInCurrentDay)
+	s.Step(`^GetError returns no errors$`,
+		tests.getErrorReturnsNoErrors)
+	s.Step(`^I send GetEventsForWeek request with current day to service API$`,
+		tests.iSendGetEventsForWeekRequestWithCurrentDayToServiceAPI)
+	s.Step(`^I get EventsResponse with (\d+) events in it with OccursAt in near week$`,
+		tests.iGetEventsResponseWithEventsInItWithOccursAtInNearWeek)
+	s.Step(`^I send GetEventsForMonth request with current day to service API$`,
+		tests.iSendGetEventsForMonthRequestWithCurrentDayToServiceAPI)
+	s.Step(`^I get EventsResponse with (\d+) events in it with OccursAt in near month$`,
+		tests.iGetEventsResponseWithEventsInItWithOccursAtInNearMonth)
 
-	s.AfterScenario(test.stop)
+	s.AfterScenario(tests.stop)
 }

@@ -83,8 +83,7 @@ func (t *eventTest) addedEventWillBeReturnedByGetEventWithIDOfTheEvent() error {
 }
 
 func (t *eventTest) getErrorHasNoErrorsInBothCases() error {
-	respErr := t.resp.GetError()
-	if respErr != "" {
+	if respErr := t.resp.GetError(); respErr != "" {
 		return errors.New(respErr)
 	}
 
@@ -114,12 +113,7 @@ func (t *eventTest) iGetEventResponseWithIDOfTheEvent() error {
 }
 
 func (t *eventTest) getErrorHasNoErrors() error {
-	respErr := t.resp.GetError()
-	if respErr != "" {
-		return errors.New(respErr)
-	}
-
-	return nil
+	return t.getErrorHasNoErrorsInBothCases()
 }
 
 func (t *eventTest) iSendGetEventRequestWithNonExistingEventIDToServiceAPI() error {

@@ -20,7 +20,7 @@ func TestMain(m *testing.M) {
 
 	status := godog.RunWithOptions("integration", func(s *godog.Suite) {
 		godog.SuiteContext(s)
-		//FeatureContextAddEvent(s)
+		FeatureContextAddEvent(s)
 		FeatureContextListEvents(s)
 	}, godog.Options{
 		Format:    "pretty",
