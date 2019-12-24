@@ -8,6 +8,7 @@ package main
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/evakom/calendar/internal/loggers"
 	"github.com/prometheus/client_golang/prometheus"
@@ -18,6 +19,8 @@ import (
 type prometMonitor struct {
 	listen            string
 	messagesPerSecond prometheus.Gauge
+	totalMessages     prometheus.Counter
+	startTime         time.Time
 	ch                chan float64
 	logger            loggers.Logger
 }
@@ -29,15 +32,22 @@ func newPrometheus(listen string) *prometMonitor {
 			Name: "calendar_sender_messages_per_second",
 			Help: "Messages per second sent to users",
 		}),
-		ch:     make(chan float64, 1),
-		logger: loggers.GetLogger(),
+		totalMessages: promauto.NewCounter(prometheus.CounterOpts{
+			Name: "calendar_sender_total_messages",
+			Help: "Total messages sent to users",
+		}),
+		startTime: time.Now(),
+		ch:        make(chan float64, 1),
+		logger:    loggers.GetLogger(),
 	}
 }
 
 func (p *prometMonitor) start() {
 	go func() {
-		for g := range p.ch {
-			p.messagesPerSecond.Set(g)
+		for t := range p.ch {
+			p.totalMessages.Inc()
+			stat := time.Since(p.startTime).Seconds() / t
+			p.messagesPerSecond.Set(stat)
 		}
 	}()
 
@@ -45,7 +55,7 @@ func (p *prometMonitor) start() {
 	go func() {
 		p.logger.Info("Starting prometheus exporter at port: %s", p.listen)
 		if err := http.ListenAndServe(":9102", nil); err != nil {
-			p.logger.Error("Error start prometheus exporter:", err)
+			p.logger.Error("Error start prometheus exporter: %s", err)
 			return
 		}
 	}()

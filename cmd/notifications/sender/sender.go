@@ -11,7 +11,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"math/rand"
 	"os"
 	"os/signal"
 	"sync"
@@ -41,6 +40,8 @@ type sender struct {
 	cancel context.CancelFunc
 	logger loggers.Logger
 	promet *prometMonitor
+	sync.RWMutex
+	totalMessages float64
 }
 
 func newSender(db storage.DB, dsn string) (*sender, error) {
@@ -168,8 +169,12 @@ func (s *sender) sendAlert(user models.User, event models.Event) error {
 	if s.promet == nil {
 		return fmt.Errorf("prometheus exporter not found for count sent alerts")
 	}
-	s.promet.ch <- rand.Float64()
+	s.Lock()
+	s.totalMessages++
+	s.Unlock()
+	s.promet.ch <- s.totalMessages
 	s.logger.Info("Sent statistics to prometheus exporter")
+	//
 
 	if err := sendEmail(
 		fromEmail,
