@@ -9,8 +9,9 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/evakom/calendar/tools"
 	"log"
+
+	"github.com/evakom/calendar/tools"
 )
 
 func main() {
@@ -28,6 +29,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	promet := newPrometheus(":9102")
+	promet.start()
 
 	sender.start()
 

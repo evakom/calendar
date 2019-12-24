@@ -21,3 +21,4 @@ scrape_configs:
     static_configs:
       - targets:
           - db-exporter:9187
+          - sender:9102
