@@ -8,24 +8,39 @@ package main
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/evakom/calendar/internal/loggers"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-type prometheus struct {
-	listen string
-	logger loggers.Logger
+type prometMonitor struct {
+	listen            string
+	messagesPerSecond prometheus.Gauge
+	logger            loggers.Logger
 }
 
-func newPrometheus(listen string) *prometheus {
-	return &prometheus{
+func newPrometheus(listen string) *prometMonitor {
+	return &prometMonitor{
 		listen: listen,
+		messagesPerSecond: promauto.NewGauge(prometheus.GaugeOpts{
+			Name: "calendar_sender_messages_per_second",
+			Help: "Messages per second sent to users",
+		}),
 		logger: loggers.GetLogger(),
 	}
 }
 
-func (p *prometheus) start() {
+func (p *prometMonitor) start() {
+	go func() {
+		for {
+			p.messagesPerSecond.Add(1)
+			time.Sleep(5 * time.Second)
+		}
+	}()
+
 	http.Handle("/metrics", promhttp.Handler())
 	go func() {
 		p.logger.Info("Starting prometheus exporter at port: %s", p.listen)
