@@ -8,7 +8,6 @@ package main
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/evakom/calendar/internal/loggers"
 	"github.com/prometheus/client_golang/prometheus"
@@ -19,6 +18,7 @@ import (
 type prometMonitor struct {
 	listen            string
 	messagesPerSecond prometheus.Gauge
+	ch                chan float64
 	logger            loggers.Logger
 }
 
@@ -29,15 +29,15 @@ func newPrometheus(listen string) *prometMonitor {
 			Name: "calendar_sender_messages_per_second",
 			Help: "Messages per second sent to users",
 		}),
+		ch:     make(chan float64, 1),
 		logger: loggers.GetLogger(),
 	}
 }
 
 func (p *prometMonitor) start() {
 	go func() {
-		for {
-			p.messagesPerSecond.Add(1)
-			time.Sleep(5 * time.Second)
+		for g := range p.ch {
+			p.messagesPerSecond.Set(g)
 		}
 	}()
 
@@ -49,4 +49,9 @@ func (p *prometMonitor) start() {
 			return
 		}
 	}()
+}
+
+func (p *prometMonitor) stop() {
+	close(p.ch)
+	p.logger.Info("Stopped prometheus")
 }

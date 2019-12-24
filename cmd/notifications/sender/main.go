@@ -31,6 +31,7 @@ func main() {
 	}
 
 	promet := newPrometheus(":9102")
+	sender.promet = promet
 	promet.start()
 
 	sender.start()
@@ -41,4 +42,6 @@ func main() {
 	if err := db.CloseDB(); err != nil {
 		log.Println("Error close DB:", err)
 	}
+
+	promet.stop()
 }
