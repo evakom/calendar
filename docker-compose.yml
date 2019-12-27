@@ -46,8 +46,10 @@ services:
       - calendar-db
     expose:
       - 8080
+      - 9180
     ports:
       - 8080:8080
+      - 9180:9180
     networks:
       calendar:
         aliases:

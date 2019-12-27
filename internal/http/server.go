@@ -9,12 +9,13 @@ package http
 
 import (
 	"context"
-	"github.com/evakom/calendar/internal/domain/calendar"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/evakom/calendar/internal/domain/calendar"
 )
 
 // StartHTTPServer inits routing and starts web listener.

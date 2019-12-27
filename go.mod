@@ -16,6 +16,7 @@ require (
 	github.com/prometheus/client_golang v1.3.0
 	github.com/shopspring/decimal v0.0.0-20191009025716-f1972eb1d1f5 // indirect
 	github.com/sirupsen/logrus v1.4.2
+	github.com/slok/go-http-metrics v0.6.0
 	github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271
 	golang.org/x/crypto v0.0.0-20191029031824-8986dd9e96cf // indirect
 	google.golang.org/appengine v1.6.5 // indirect

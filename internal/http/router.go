@@ -8,12 +8,21 @@ package http
 
 import (
 	"context"
-	"github.com/evakom/calendar/internal/loggers"
-	"github.com/google/uuid"
 	"net/http"
+	"os"
 	"path"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/slok/go-http-metrics/middleware"
+
+	"github.com/evakom/calendar/internal/loggers"
+	"github.com/google/uuid"
+
+	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
 )
+
+const prometPort = ":9180"
 
 type contextKey string
 
@@ -35,7 +44,23 @@ func (h handler) prepareRoutes() http.Handler {
 	siteHandler := h.pathMiddleware(siteMux)
 	siteHandler = h.loggerMiddleware(siteHandler)
 	siteHandler = h.panicMiddleware(siteHandler)
-	return siteHandler
+
+	prometMdlw := middleware.New(middleware.Config{
+		Recorder: metrics.NewRecorder(metrics.Config{}),
+	})
+	hPromet := prometMdlw.Handler("", siteHandler)
+	go func() {
+		h.logger.Info("Starting HTTP prometheus exporter at: %s", prometPort)
+		err := http.ListenAndServe(prometPort, promhttp.Handler())
+		if err != nil && err != http.ErrServerClosed {
+			h.logger.Error(err.Error())
+			os.Exit(1)
+		}
+		// TODO graceful shutdown?
+		h.logger.Info("Shutdown HTTP prometheus exporter at: %s", prometPort)
+	}()
+
+	return hPromet
 }
 
 func (h handler) addPath(path string, handler http.HandlerFunc) {
