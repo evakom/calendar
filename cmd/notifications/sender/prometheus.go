@@ -29,8 +29,8 @@ func newPrometheus(listen string) *prometMonitor {
 	return &prometMonitor{
 		listen: listen,
 		messagesPerSecond: promauto.NewGauge(prometheus.GaugeOpts{
-			Name: "calendar_sender_messages_per_second",
-			Help: "Messages per second sent to users",
+			Name: "calendar_sender_messages_per_second_average",
+			Help: "Average messages per second sent to users",
 		}),
 		totalMessages: promauto.NewCounter(prometheus.CounterOpts{
 			Name: "calendar_sender_total_messages",
@@ -44,10 +44,12 @@ func newPrometheus(listen string) *prometMonitor {
 
 func (p *prometMonitor) start() {
 	go func() {
+		prevT := 0.0
 		for t := range p.ch {
-			p.totalMessages.Inc()
-			stat := time.Since(p.startTime).Seconds() / t
+			p.totalMessages.Add(t - prevT)
+			stat := t / time.Since(p.startTime).Seconds()
 			p.messagesPerSecond.Set(stat)
+			prevT = t
 		}
 	}()
 
@@ -63,5 +65,5 @@ func (p *prometMonitor) start() {
 
 func (p *prometMonitor) stop() {
 	close(p.ch)
-	p.logger.Info("Stopped prometheus")
+	p.logger.Info("Stopped prometheus exporter")
 }

@@ -15,6 +15,7 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/evakom/calendar/internal/domain/interfaces/storage"
 	"github.com/evakom/calendar/internal/domain/models"
@@ -84,6 +85,19 @@ func (s *sender) start() {
 	if err := s.consume(); err != nil {
 		log.Fatal(err)
 	}
+
+	go func() {
+		for {
+			select {
+			case <-s.ctx.Done():
+				s.logger.Info("Exited from prometheus sender worker")
+				return
+			case <-time.After(15 * time.Second):
+				s.promet.ch <- s.totalMessages
+				s.logger.Info("Sent statistics to prometheus exporter")
+			}
+		}
+	}()
 
 	s.logger.Warn("Signal received: %s", <-shutdown)
 	s.cancel()
@@ -165,15 +179,13 @@ func (s *sender) parseAndSend(msg amqp.Delivery) {
 
 func (s *sender) sendAlert(user models.User, event models.Event) error {
 
-	// TODO - move to end after debuging
+	// TODO - move to end after debugging
 	if s.promet == nil {
 		return fmt.Errorf("prometheus exporter not found for count sent alerts")
 	}
 	s.Lock()
 	s.totalMessages++
 	s.Unlock()
-	s.promet.ch <- s.totalMessages
-	s.logger.Info("Sent statistics to prometheus exporter")
 	//
 
 	if err := sendEmail(
