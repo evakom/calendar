@@ -18,7 +18,7 @@ require (
 	github.com/sirupsen/logrus v1.4.2
 	github.com/slok/go-http-metrics v0.6.0
 	github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271
-	golang.org/x/crypto v0.0.0-20191029031824-8986dd9e96cf // indirect
+	golang.org/x/crypto v0.1.0 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
 	google.golang.org/grpc v1.25.1
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
